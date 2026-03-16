@@ -1,0 +1,21 @@
+{
+  "features": {
+    "face_shape": {
+      "oval": "Harmonious and balanced lifestyle approach.",
+      "square": "Principled, determined, and grounded personality.",
+      "round": "Adaptable, sociable, and emotionally aware.",
+      "heart": "Creative, intellectually curious, and expressive."
+    },
+    "forehead": {
+      "high": "Strategic thinking and broad intellectual interests.",
+      "wide": "Practical wisdom and strong management of life affairs.",
+      "rounded": "Imaginative and idealistic outlook."
+    },
+    "eyes": {
+      "large": "Open-minded and receptive to new life experiences.",
+      "deep_set": "Observant, reflective, and cautious.",
+      "upward_sloping": "Optimistic and goal-oriented."
+    }
+  },
+  "disclaimer": "For entertainment and lifestyle insight only. These interpretations are based on traditional face reading themes and are not deterministic."
+}

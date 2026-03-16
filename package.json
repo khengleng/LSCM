@@ -1,0 +1,26 @@
+{
+  "name": "lscm",
+  "version": "1.0.0",
+  "description": "LifeStyle Chest Machine",
+  "private": true,
+  "workspaces": [
+    "services/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspaces --if-present",
+    "build": "npm run build --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/khengleng/LSCM.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/khengleng/LSCM/issues"
+  },
+  "homepage": "https://github.com/khengleng/LSCM#readme"
+}

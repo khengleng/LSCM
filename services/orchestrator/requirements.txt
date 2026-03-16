@@ -1,0 +1,15 @@
+fastapi
+uvicorn
+python-dotenv
+httpx
+pydantic
+openai
+google-cloud-speech
+google-cloud-texttospeech
+redis
+psycopg2-binary
+sqlalchemy
+python-multipart
+# AI Vision models
+# google-generativeai for Gemini
+google-generativeai
