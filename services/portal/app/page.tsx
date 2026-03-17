@@ -15,6 +15,7 @@ import {
   Settings
 } from 'lucide-react';
 import { useDashboardData, getApiBase } from './hooks/useDashboard';
+import { exportToCSV } from './utils/export';
 import StatsGrid from './components/StatsGrid';
 import RevenueChart from './components/RevenueChart';
 import ConfigPanel from './components/ConfigPanel';
@@ -45,40 +46,67 @@ export default function Dashboard() {
     setResolvedApiUrl(getApiBase());
   }, []);
 
+  const scrollTo = (id: string) => {
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#020617] text-slate-900 dark:text-slate-100 font-sans selection:bg-indigo-100 selection:text-indigo-700">
       {/* Sidebar */}
       <nav className="fixed left-0 top-0 bottom-0 w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 z-[60] flex flex-col hidden lg:flex">
-        <div className="p-6 border-b border-slate-200 dark:border-slate-800 flex items-center gap-3">
+        <div className="p-6 border-b border-slate-200 dark:border-slate-800 flex items-center gap-3 cursor-pointer" onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})}>
           <div className="p-2 bg-slate-900 dark:bg-indigo-600 rounded-lg shrink-0">
             <Cpu className="w-5 h-5 text-white" />
           </div>
           <div>
             <h1 className="text-sm font-bold tracking-tight text-slate-900 dark:text-white uppercase">Lifestyle Machine</h1>
-            <p className="text-[10px] text-slate-500 font-medium">Ops Dashboard v1.0.5</p>
+            <p className="text-[10px] text-slate-500 font-medium">Ops Dashboard v1.0.6</p>
           </div>
         </div>
         
         <div className="flex-1 py-6 px-4 space-y-1">
-          <button className="w-full flex items-center gap-3 px-3 py-2 bg-slate-50 dark:bg-indigo-500/10 text-slate-900 dark:text-indigo-400 rounded-lg text-sm font-bold transition-all">
+          <button 
+            onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})}
+            className="w-full flex items-center gap-3 px-3 py-2 bg-slate-50 dark:bg-indigo-500/10 text-slate-900 dark:text-indigo-400 rounded-lg text-sm font-bold transition-all"
+          >
             <LayoutDashboard className="w-4 h-4" />
             Control Center
           </button>
-          <button className="w-full flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-lg text-sm font-medium transition-all">
+          <button 
+            onClick={() => scrollTo('section-users')}
+            className="w-full flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-lg text-sm font-medium transition-all"
+          >
             <UsersIcon className="w-4 h-4" />
             User Management
           </button>
-          <button className="w-full flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-lg text-sm font-medium transition-all">
+          <button 
+            onClick={() => scrollTo('section-hot-leads')}
+            className="w-full flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-lg text-sm font-medium transition-all"
+          >
             <Target className="w-4 h-4" />
             Retargeting Hub
           </button>
-          <button className="w-full flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-lg text-sm font-medium transition-all">
+          <button 
+            onClick={() => scrollTo('section-ledger')}
+            className="w-full flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-lg text-sm font-medium transition-all"
+          >
             <PaymentIcon className="w-4 h-4" />
             Financial Ledger
           </button>
-          <button className="w-full flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-lg text-sm font-medium transition-all">
+          <button 
+            onClick={() => scrollTo('section-journeys')}
+            className="w-full flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-lg text-sm font-medium transition-all"
+          >
             <MousePointer2 className="w-4 h-4" />
             Journey Trace
+          </button>
+          <button 
+            onClick={() => scrollTo('section-config')}
+            className="w-full flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-lg text-sm font-medium transition-all"
+          >
+            <Settings className="w-4 h-4" />
+            System Config
           </button>
         </div>
 
@@ -146,7 +174,7 @@ export default function Dashboard() {
         </header>
 
         <main className="p-8 max-w-7xl mx-auto space-y-8">
-          <div>
+          <div id="top">
             <h2 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Lifestyle Control Center</h2>
             <p className="text-slate-500 mt-1">Operational oversight for voice-first lifestyle engagement engines.</p>
           </div>
@@ -199,7 +227,7 @@ export default function Dashboard() {
               </div>
             </div>
 
-            <div className="space-y-8">
+            <div id="section-config" className="space-y-8">
               <ConfigPanel configs={Array.isArray(configs) ? configs : []} onUpdate={updateConfig} />
               
               <div className="bg-slate-900 dark:bg-slate-900 rounded-2xl p-6 text-white relative overflow-hidden shadow-sm group border border-slate-800">
@@ -221,7 +249,7 @@ export default function Dashboard() {
           </div>
 
           {/* Growth & Success Section */}
-          <div className="space-y-4 pt-4 border-t border-slate-200 dark:border-slate-800">
+          <div id="section-hot-leads" className="space-y-4 pt-12 border-t border-slate-200 dark:border-slate-800">
              <div className="flex items-center gap-2">
                <Target className="w-5 h-5 text-indigo-500" />
                <h3 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight leading-none uppercase text-[12px] tracking-widest text-slate-400">Section 01: Customer Success Hub</h3>
@@ -237,9 +265,15 @@ export default function Dashboard() {
              </div>
             
             <div className="space-y-12">
-              <UserTable users={Array.isArray(users) ? users : []} onAdjustCredits={adjustCredits} />
-              <TransactionLedger transactions={Array.isArray(transactions) ? transactions : []} />
-              <JourneyTracker journeys={Array.isArray(journeys) ? journeys : []} />
+              <div id="section-users">
+                <UserTable users={Array.isArray(users) ? users : []} onAdjustCredits={adjustCredits} />
+              </div>
+              <div id="section-ledger">
+                <TransactionLedger transactions={Array.isArray(transactions) ? transactions : []} />
+              </div>
+              <div id="section-journeys">
+                <JourneyTracker journeys={Array.isArray(journeys) ? journeys : []} />
+              </div>
             </div>
           </div>
         </main>
@@ -248,7 +282,7 @@ export default function Dashboard() {
           <p>© 2026 LIFESTYLE MACHINE OPERATIONS</p>
           <div className="flex gap-8">
             <span className="hover:text-indigo-500 transition-colors cursor-pointer">Security Protocol</span>
-            <span className="hover:text-indigo-500 transition-colors cursor-pointer">Export Data</span>
+            <span onClick={() => exportToCSV(transactions, 'all_transactions')} className="hover:text-indigo-500 transition-colors cursor-pointer">Export Data</span>
           </div>
         </footer>
       </div>

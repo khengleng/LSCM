@@ -83,7 +83,7 @@ export function useDashboardData() {
 
   useEffect(() => {
     fetchData();
-    const interval = setInterval(fetchData, 30000); // Auto-refresh every 30s
+    const interval = setInterval(fetchData, 60000); // 60s backoff to avoid 429
     return () => clearInterval(interval);
   }, []);
 
