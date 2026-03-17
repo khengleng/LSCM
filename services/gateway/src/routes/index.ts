@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { handleFacebookWebhook, handleTelegramWebhook } from '../controllers/webhooks';
-import { platformAuth, requireAuth } from '../middleware/auth';
+import { platformAuth, requireAuth, adminAuth } from '../middleware/auth';
 import { enforceQuota } from '../middleware/quota';
 import { AuthRequest } from '../types/auth';
 
@@ -13,7 +13,8 @@ import {
   getUsersList,
   getUsageAnalytics,
   getCustomerJourneys,
-  getRetargetingData
+  getRetargetingData,
+  adjustUserCredits
 } from '../controllers/admin_controller';
 
 const router = Router();
@@ -27,7 +28,7 @@ router.post('/webhooks/fb', handleFacebookWebhook);
 router.post('/webhooks/tg', handleTelegramWebhook);
 
 // 2. Admin API (Web Portal -> Gateway)
-// TODO: Add Admin Auth Middleware
+router.use('/admin', adminAuth);
 router.get('/admin/stats', getDashboardStats);
 router.get('/admin/configs', getAllConfigs);
 router.post('/admin/configs', updateConfig);
@@ -37,6 +38,7 @@ router.get('/admin/users', getUsersList);
 router.get('/admin/usage-stats', getUsageAnalytics);
 router.get('/admin/journeys', getCustomerJourneys);
 router.get('/admin/retargeting', getRetargetingData);
+router.post('/admin/users/adjust-credits', adjustUserCredits);
 
 // 3. Main API (App -> Gateway)
 // Protected by AuthMiddleware and QuotaMiddleware

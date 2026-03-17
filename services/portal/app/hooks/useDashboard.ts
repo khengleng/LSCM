@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api/v1';
+const ADMIN_TOKEN = process.env.NEXT_PUBLIC_ADMIN_TOKEN || 'lifestyle-machine-ultra-secret-2026';
 
 export function useDashboardData() {
   const [stats, setStats] = useState<any>(null);
@@ -30,7 +31,9 @@ export function useDashboardData() {
       ];
       
       const responses = await Promise.all(
-        endpoints.map(e => fetch(`${API_BASE}/admin/${e}`))
+        endpoints.map(e => fetch(`${API_BASE}/admin/${e}`, {
+          headers: { 'x-admin-token': ADMIN_TOKEN }
+        }))
       );
 
       const data = await Promise.all(responses.map(r => r.json()));
@@ -60,12 +63,31 @@ export function useDashboardData() {
     try {
       await fetch(`${API_BASE}/admin/configs`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-admin-token': ADMIN_TOKEN
+        },
         body: JSON.stringify({ key, value })
       });
       fetchData(); // Refresh
     } catch (err) {
       alert('Failed to update config');
+    }
+  };
+
+  const adjustCredits = async (userId: string, adjustment: number) => {
+    try {
+      await fetch(`${API_BASE}/admin/users/adjust-credits`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-admin-token': ADMIN_TOKEN
+        },
+        body: JSON.stringify({ userId, adjustment })
+      });
+      fetchData(); // Refresh
+    } catch (err) {
+      alert('Failed to adjust credits');
     }
   };
 
@@ -80,6 +102,7 @@ export function useDashboardData() {
     retargetingData,
     loading, 
     updateConfig, 
+    adjustCredits,
     refresh: fetchData 
   };
 }

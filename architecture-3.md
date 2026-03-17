@@ -349,9 +349,10 @@ The "Lifestyle Control Center" for business operations.
 - **Dynamic Configuration:** Update pricing, daily limits, and AI model routing without redeploying code.
 - **Real-time Traffic Monitor:** Active users, voice query volume, and STT failure rates.
 - **Financial Ledger:** Track successful KHQR top-ups, subscription revenue, and profit margins.
-- **User Management:** Audit logs for user readings and manual credit adjustments if needed.
+- **User Management:** Audit logs for user readings and manual credit adjustments (Refuel/Drain) for operators.
 - **Customer Journey Trace:** Sequential event tracking to audit platform flow and identify drop-off points.
 - **Retargeting Hub:** Identification of "Hot Leads" (users with < 1 credit) and "Abandoned Payments" (pending top-ups > 30 mins) for re-engagement activities.
+- **Financial Control:** CSV Exporting (Users/Ledger) for tax compliance and Gross Margin auditing to monitor AI cost-to-revenue ratio.
 
 **Behavioral Observability:**
 - **Microsoft Clarity Integration:** Session recordings and heatmaps for visual UX debugging (ID: pjx5oxzk7o).

@@ -38,13 +38,26 @@ export const platformAuth = async (req: Request, res: Response, next: NextFuncti
   }
 };
 
-/**
- * Ensures a request has a valid user context.
- */
 export const requireAuth = (req: Request, res: Response, next: NextFunction) => {
   const authReq = req as AuthRequest;
   if (!authReq.user) {
     return res.status(401).json({ error: 'Authentication Required' });
+  }
+  next();
+};
+
+/**
+ * Secures admin-only endpoints.
+ */
+export const adminAuth = (req: Request, res: Response, next: NextFunction) => {
+  const adminToken = process.env.ADMIN_TOKEN || 'lifestyle-machine-ultra-secret-2026';
+  const providedToken = req.headers['x-admin-token'];
+
+  if (providedToken !== adminToken) {
+    return res.status(403).json({ 
+      error: 'Forbidden', 
+      message: 'Invalid or missing Admin Access Token' 
+    });
   }
   next();
 };

@@ -16,10 +16,28 @@ export const getDashboardStats = async (req: Request, res: Response) => {
     // 3. User interactions (Usage Events)
     const usageCount = await query('SELECT COUNT(*) FROM usage_events');
 
+    // 4. Estimate AI Cost (Heuristics for Business Operator)
+    // interpretation: $0.01, speech_to_text: $0.006, palm_analysis: $0.02
+    const costAnalysis = await query(`
+      SELECT 
+        SUM(CASE 
+          WHEN event_type = 'interpretation' THEN 0.01
+          WHEN event_type = 'speech_to_text' THEN 0.006
+          WHEN event_type = 'palm_analysis' THEN 0.02
+          ELSE 0.005
+        END) as estimated_cost
+      FROM usage_events
+    `);
+
+    const totalRevenue = parseFloat(revenueRes.rows[0].sum || '0');
+    const estimatedCost = parseFloat(costAnalysis.rows[0].estimated_cost || '0');
+
     res.status(200).json({
       total_users: usersCount.rows[0].count,
-      total_revenue: revenueRes.rows[0].sum || 0,
+      total_revenue: totalRevenue,
       total_queries: usageCount.rows[0].count,
+      estimated_cost: estimatedCost,
+      gross_margin: totalRevenue > 0 ? ((totalRevenue - estimatedCost) / totalRevenue * 100).toFixed(1) : 0,
       active_threshold: 'Live'
     });
   } catch (err: any) {
@@ -55,7 +73,7 @@ export const getTransactions = async (req: Request, res: Response) => {
       FROM transactions t 
       LEFT JOIN users u ON t.user_id = u.id 
       ORDER BY t.created_at DESC 
-      LIMIT 50
+      LIMIT 100
     `);
     res.status(200).json(transactions.rows);
   } catch (err: any) {
@@ -161,5 +179,21 @@ export const getRetargetingData = async (req: Request, res: Response) => {
     });
   } catch (err: any) {
     res.status(500).json({ error: 'Failed to fetch retargeting data' });
+  }
+};
+
+export const adjustUserCredits = async (req: Request, res: Response) => {
+  const { userId, adjustment } = req.body;
+  if (!userId || adjustment === undefined) return res.status(400).json({ error: 'User ID and adjustment amount required' });
+
+  try {
+    await query(`
+      UPDATE user_profiles 
+      SET credit_balance = credit_balance + $1 
+      WHERE user_id = $2
+    `, [adjustment, userId]);
+    res.status(200).json({ message: 'Credits adjusted successfully' });
+  } catch (err: any) {
+    res.status(500).json({ error: 'Failed to adjust user credits' });
   }
 };

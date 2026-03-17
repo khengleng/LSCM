@@ -183,7 +183,7 @@ export default function Dashboard() {
 
           {/* Management Tables Section */}
           <div className="grid grid-cols-1 gap-10">
-            <UserTable users={users} />
+            <UserTable users={users} onAdjustCredits={adjustCredits} />
             <TransactionLedger transactions={transactions} />
           </div>
         </main>
