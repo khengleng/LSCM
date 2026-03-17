@@ -350,6 +350,15 @@ The "Lifestyle Control Center" for business operations.
 - **Real-time Traffic Monitor:** Active users, voice query volume, and STT failure rates.
 - **Financial Ledger:** Track successful KHQR top-ups, subscription revenue, and profit margins.
 - **User Management:** Audit logs for user readings and manual credit adjustments if needed.
+- **Customer Journey Trace:** Sequential event tracking to audit platform flow and identify drop-off points.
+- **Retargeting Hub:** Identification of "Hot Leads" (users with < 1 credit) and "Abandoned Payments" (pending top-ups > 30 mins) for re-engagement activities.
+
+**Behavioral Observability:**
+- **Microsoft Clarity Integration:** Session recordings and heatmaps for visual UX debugging (ID: pjx5oxzk7o).
+- **Trace ID Logging:** Every interaction is traceable from user input to final AI output.
+
+**Design Standard:**
+- **Typography:** The portal uses **Arial** across ALL screens to ensure clean, professional, and cross-platform consistency for business operators.
 
 **Tech Stack:** Next.js (Dashboard) + Admin API (Node.js).
 
@@ -686,6 +695,16 @@ Alerts:
 - AI cost spike
 - unusual voice or image traffic surge
 - payment callback failures
+- **Behavioral Loopback:** Tracking users who drop off after STT failures.
+
+## 18. Customer Journey Flawlessness
+To ensure a frictionless voice-first experience, the platform tracks:
+1. **The Entry Node:** Where the user starts (Voice button click).
+2. **The Processing Node:** Time spent in STT and Orchestration.
+3. **The Response Node:** Whether the user listened to the TTS until the end.
+5. **The Retargeting Node:** Closing the loop by identifies users who failed to top up and triggering re-engagement (Push/Email/SMS).
+
+**Success Metric:** "Zero-to-Voice" latency < 2 seconds and "Reading-to-Revenue" conversion > 5%.
 
 ## 18. Delivery Roadmap
 

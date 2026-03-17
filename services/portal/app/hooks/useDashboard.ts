@@ -8,26 +8,41 @@ export function useDashboardData() {
   const [stats, setStats] = useState<any>(null);
   const [configs, setConfigs] = useState<any[]>([]);
   const [transactions, setTransactions] = useState<any[]>([]);
+  const [revenueData, setRevenueData] = useState<any[]>([]);
+  const [users, setUsers] = useState<any[]>([]);
+  const [usageStats, setUsageStats] = useState<any[]>([]);
+  const [journeys, setJourneys] = useState<any[]>([]);
+  const [retargetingData, setRetargetingData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [sRes, cRes, tRes] = await Promise.all([
-        fetch(`${API_BASE}/admin/stats`),
-        fetch(`${API_BASE}/admin/configs`),
-        fetch(`${API_BASE}/admin/transactions`)
-      ]);
+      const endpoints = [
+        'stats',
+        'configs',
+        'transactions',
+        'revenue-chart',
+        'users',
+        'usage-stats',
+        'journeys',
+        'retargeting'
+      ];
+      
+      const responses = await Promise.all(
+        endpoints.map(e => fetch(`${API_BASE}/admin/${e}`))
+      );
 
-      const [sData, cData, tData] = await Promise.all([
-        sRes.json(),
-        cRes.json(),
-        tRes.json()
-      ]);
+      const data = await Promise.all(responses.map(r => r.json()));
 
-      setStats(sData);
-      setConfigs(cData);
-      setTransactions(tData);
+      setStats(data[0]);
+      setConfigs(data[1]);
+      setTransactions(data[2]);
+      setRevenueData(data[3]);
+      setUsers(data[4]);
+      setUsageStats(data[5]);
+      setJourneys(data[6]);
+      setRetargetingData(data[7]);
     } catch (err) {
       console.error('Failed to fetch dashboard data', err);
     } finally {
@@ -54,5 +69,17 @@ export function useDashboardData() {
     }
   };
 
-  return { stats, configs, transactions, loading, updateConfig, refresh: fetchData };
+  return { 
+    stats, 
+    configs, 
+    transactions, 
+    revenueData, 
+    users, 
+    usageStats, 
+    journeys, 
+    retargetingData,
+    loading, 
+    updateConfig, 
+    refresh: fetchData 
+  };
 }

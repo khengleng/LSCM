@@ -8,7 +8,12 @@ import {
   getDashboardStats, 
   getAllConfigs, 
   updateConfig, 
-  getTransactions 
+  getTransactions,
+  getRevenueChartData,
+  getUsersList,
+  getUsageAnalytics,
+  getCustomerJourneys,
+  getRetargetingData
 } from '../controllers/admin_controller';
 
 const router = Router();
@@ -27,6 +32,11 @@ router.get('/admin/stats', getDashboardStats);
 router.get('/admin/configs', getAllConfigs);
 router.post('/admin/configs', updateConfig);
 router.get('/admin/transactions', getTransactions);
+router.get('/admin/revenue-chart', getRevenueChartData);
+router.get('/admin/users', getUsersList);
+router.get('/admin/usage-stats', getUsageAnalytics);
+router.get('/admin/journeys', getCustomerJourneys);
+router.get('/admin/retargeting', getRetargetingData);
 
 // 3. Main API (App -> Gateway)
 // Protected by AuthMiddleware and QuotaMiddleware

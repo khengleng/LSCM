@@ -53,12 +53,113 @@ export const getTransactions = async (req: Request, res: Response) => {
     const transactions = await query(`
       SELECT t.*, u.name as user_name 
       FROM transactions t 
-      JOIN users u ON t.user_id = u.id 
+      LEFT JOIN users u ON t.user_id = u.id 
       ORDER BY t.created_at DESC 
       LIMIT 50
     `);
     res.status(200).json(transactions.rows);
   } catch (err: any) {
     res.status(500).json({ error: 'Failed to fetch transactions' });
+  }
+};
+
+export const getRevenueChartData = async (req: Request, res: Response) => {
+  try {
+    const data = await query(`
+      SELECT 
+        DATE_TRUNC('day', created_at) as date,
+        SUM(amount) as amount
+      FROM transactions
+      WHERE status = 'success'
+      GROUP BY 1
+      ORDER BY 1 ASC
+      LIMIT 30
+    `);
+    res.status(200).json(data.rows);
+  } catch (err: any) {
+    res.status(500).json({ error: 'Failed to fetch revenue growth data' });
+  }
+};
+
+export const getUsersList = async (req: Request, res: Response) => {
+  try {
+    const users = await query(`
+      SELECT u.*, up.credit_balance, up.language, s.plan_name
+      FROM users u
+      LEFT JOIN user_profiles up ON u.id = up.user_id
+      LEFT JOIN subscriptions s ON u.id = s.user_id
+      ORDER BY u.created_at DESC
+      LIMIT 100
+    `);
+    res.status(200).json(users.rows);
+  } catch (err: any) {
+    res.status(500).json({ error: 'Failed to fetch users list' });
+  }
+};
+
+export const getUsageAnalytics = async (req: Request, res: Response) => {
+  try {
+    const data = await query(`
+      SELECT 
+        event_type,
+        COUNT(*) as count
+      FROM usage_events
+      GROUP BY 1
+      ORDER BY 2 DESC
+    `);
+    res.status(200).json(data.rows);
+  } catch (err: any) {
+    res.status(500).json({ error: 'Failed to fetch usage analytics' });
+  }
+};
+
+export const getCustomerJourneys = async (req: Request, res: Response) => {
+  try {
+    const data = await query(`
+      SELECT 
+        u.name as user_name,
+        ue.event_type,
+        ue.metadata,
+        ue.created_at
+      FROM usage_events ue
+      JOIN users u ON ue.user_id = u.id
+      ORDER BY ue.created_at DESC
+      LIMIT 100
+    `);
+    res.status(200).json(data.rows);
+  } catch (err: any) {
+    res.status(500).json({ error: 'Failed to fetch customer journeys' });
+  }
+};
+
+export const getRetargetingData = async (req: Request, res: Response) => {
+  try {
+    // Users with 0 balance who queried in the last 24h
+    const hotLeads = await query(`
+      SELECT DISTINCT u.id, u.name, up.credit_balance, MAX(ue.created_at) as last_seen
+      FROM users u
+      JOIN user_profiles up ON u.id = up.user_id
+      JOIN usage_events ue ON u.id = ue.user_id
+      WHERE up.credit_balance <= 1
+      GROUP BY u.id, u.name, up.credit_balance
+      ORDER BY last_seen DESC
+      LIMIT 10
+    `);
+
+    // Failed/Pending transactions in the last hour
+    const abandonedPayments = await query(`
+      SELECT t.*, u.name as user_name
+      FROM transactions t
+      JOIN users u ON t.user_id = u.id
+      WHERE t.status = 'pending' AND t.created_at > NOW() - INTERVAL '1 hour'
+      ORDER BY t.created_at DESC
+    `);
+
+    res.status(200).json({
+      hot_leads: hotLeads.rows,
+      abandoned_payments: abandonedPayments.rows
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: 'Failed to fetch retargeting data' });
   }
 };
