@@ -10,8 +10,13 @@ dotenv.config();
 const app = express();
 
 // Middleware
-app.use(helmet());
-app.use(cors());
+app.use(helmet({
+  crossOriginResourcePolicy: false, // Allow images/resources across origins
+}));
+app.use(cors({
+  origin: ['https://lifestyle.cambobia.com', 'http://localhost:3000'],
+  credentials: true
+}));
 app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
