@@ -28,50 +28,53 @@ export default function RevenueChart({ data }: RevenueChartProps) {
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart
           data={chartData}
-          margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+          margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
         >
           <defs>
             <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3}/>
-              <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
+              <stop offset="5%" stopColor="#4f46e5" stopOpacity={0.1}/>
+              <stop offset="95%" stopColor="#4f46e5" stopOpacity={0}/>
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1e293b" />
+          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" className="dark:stroke-slate-800" />
           <XAxis 
             dataKey="formattedDate" 
             axisLine={false} 
             tickLine={false} 
-            tick={{ fill: '#64748b', fontSize: 10, fontWeight: 700 }}
+            tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 500 }}
             dy={10}
           />
           <YAxis 
             axisLine={false} 
             tickLine={false} 
-            tick={{ fill: '#64748b', fontSize: 10, fontWeight: 700 }}
+            tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 500 }}
             tickFormatter={(value) => `$${value}`}
           />
           <Tooltip 
             contentStyle={{ 
-              backgroundColor: '#0f172a', 
-              border: '1px solid #1e293b', 
-              borderRadius: '12px',
+              backgroundColor: '#111827', 
+              border: '1px solid #374151', 
+              borderRadius: '8px',
               fontSize: '12px',
-              fontWeight: 'bold',
-              color: '#f1f5f9'
+              fontWeight: '600',
+              color: '#f8fafc',
+              boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)'
             }}
-            itemStyle={{ color: '#818cf8' }}
+            itemStyle={{ color: '#4f46e5' }}
+            cursor={{ stroke: '#4f46e5', strokeWidth: 1 }}
           />
           <Area 
             type="monotone" 
             dataKey="amount" 
-            stroke="#6366f1" 
-            strokeWidth={3}
+            stroke="#4f46e5" 
+            strokeWidth={2}
             fillOpacity={1} 
             fill="url(#colorRevenue)" 
-            animationDuration={2000}
+            animationDuration={1500}
           />
         </AreaChart>
       </ResponsiveContainer>
     </div>
   );
 }
+

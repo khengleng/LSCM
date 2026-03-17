@@ -13,30 +13,28 @@ export default function UserTable({ users, onAdjustCredits }: UserTableProps) {
   const [adjustValue, setAdjustValue] = useState<number>(5);
 
   return (
-    <div className="bg-slate-900/40 backdrop-blur-xl rounded-[2.5rem] border border-slate-800/60 shadow-2xl overflow-hidden mt-10">
-      <div className="px-10 py-8 bg-slate-900/40 border-b border-slate-800/60 flex justify-between items-center whitespace-nowrap overflow-x-auto gap-10">
-        <div className="flex items-center gap-10">
+    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+      <div className="px-8 py-6 border-b border-slate-200 dark:border-slate-800 flex flex-wrap justify-between items-center gap-6">
+        <div className="flex items-center gap-6">
           <div>
-            <h3 className="text-xl font-black text-white flex items-center gap-3">
-               <div className="p-2 bg-indigo-500/10 rounded-lg border border-indigo-500/20">
-                <User className="w-5 h-5 text-indigo-400" />
-              </div>
-              User Ecosystem
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <User className="w-5 h-5 text-indigo-500" />
+              Users
             </h3>
-            <p className="text-xs text-slate-500 mt-1 uppercase font-bold tracking-widest">Customer segments & engagement profiles</p>
+            <p className="text-xs text-slate-500 mt-1">Manage user accounts and credit allocations</p>
           </div>
           
-          <div className="flex items-center gap-3 bg-slate-800/40 p-1 rounded-xl border border-slate-700/50">
+          <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800 p-1 rounded-lg border border-slate-200 dark:border-slate-700">
             <button 
               onClick={() => setAdjustValue(prev => Math.max(1, prev - 1))}
-              className="p-2 hover:bg-slate-700 rounded-lg text-slate-400 transition-colors"
+              className="p-1.5 hover:bg-white dark:hover:bg-slate-700 rounded text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-all"
             >
               <Minus className="w-4 h-4" />
             </button>
-            <span className="text-xs font-black text-white px-2">± {adjustValue} Credits</span>
+            <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300 px-2 min-w-[70px] text-center">{adjustValue} Credits</span>
             <button 
                onClick={() => setAdjustValue(prev => prev + 1)}
-               className="p-2 hover:bg-slate-700 rounded-lg text-slate-400 transition-colors"
+               className="p-1.5 hover:bg-white dark:hover:bg-slate-700 rounded text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-all"
             >
               <Plus className="w-4 h-4" />
             </button>
@@ -45,70 +43,70 @@ export default function UserTable({ users, onAdjustCredits }: UserTableProps) {
 
         <button 
           onClick={() => exportToCSV(users, 'user_database')}
-          className="flex items-center gap-2 px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold transition-all border border-slate-700"
+          className="flex items-center gap-2 px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-lg text-xs font-bold transition-all border border-slate-200 dark:border-slate-800 shadow-sm"
         >
           <FileText className="w-4 h-4" />
-          Export Users
+          Export CSV
         </button>
       </div>
       
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="bg-slate-800/20 text-[10px] font-black uppercase tracking-widest text-slate-500">
-              <th className="px-10 py-5">Identities</th>
-              <th className="px-6 py-5">Sub Context</th>
-              <th className="px-6 py-5 text-center">Fuel Balance</th>
-              <th className="px-6 py-5">Lingua</th>
-              <th className="px-10 py-5 text-right">Operations</th>
+            <tr className="bg-slate-50/50 dark:bg-slate-800/50 text-[10px] font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200 dark:border-slate-800">
+              <th className="px-8 py-4">User</th>
+              <th className="px-6 py-4">Status</th>
+              <th className="px-6 py-4">Credits</th>
+              <th className="px-6 py-4">Language</th>
+              <th className="px-8 py-4 text-right">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-800/40">
+          <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
             {users.map((user, i) => (
-              <tr key={i} className="group hover:bg-slate-800/10 transition-colors">
-                <td className="px-10 py-6">
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-xs font-black text-slate-500 group-hover:border-indigo-500/50 transition-colors">
+              <tr key={i} className="group hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
+                <td className="px-8 py-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-xs font-bold text-slate-500 group-hover:bg-indigo-50 dark:group-hover:bg-indigo-500/10 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
                       {user.name?.substring(0, 2).toUpperCase() || '??'}
                     </div>
                     <div>
-                      <p className="font-bold text-white text-sm">{user.name || 'Incognito User'}</p>
-                      <p className="text-[10px] text-slate-500 font-medium font-mono lowercase">ID: {user.id.substring(0, 13)}...</p>
+                      <p className="font-semibold text-slate-900 dark:text-white text-sm leading-tight">{user.name || 'Anonymous'}</p>
+                      <p className="text-[10px] text-slate-400 font-mono mt-0.5">ID: {user.id.substring(0, 10)}...</p>
                     </div>
                   </div>
                 </td>
-                <td className="px-6 py-6">
-                  <span className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border ${
+                <td className="px-6 py-4">
+                  <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wide border ${
                     user.plan_name === 'premium' 
-                    ? 'bg-purple-500/10 text-purple-400 border-purple-500/20 shadow-lg shadow-purple-500/10' 
-                    : 'bg-slate-500/10 text-slate-400 border-slate-500/20'
+                    ? 'bg-purple-50 dark:bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-100 dark:border-purple-500/20' 
+                    : 'bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700'
                   }`}>
-                    {user.plan_name || 'free tier'}
+                    {user.plan_name || 'Standard'}
                   </span>
                 </td>
-                <td className="px-6 py-6 text-center">
-                  <div className="flex flex-col items-center">
-                    <span className="text-sm font-mono font-black text-white">{user.credit_balance}</span>
-                    <span className="text-[9px] font-black text-slate-600 uppercase tracking-tighter">Left</span>
+                <td className="px-6 py-4">
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-sm font-bold text-slate-900 dark:text-white">{user.credit_balance}</span>
+                    <span className="text-[9px] font-medium text-slate-400">total</span>
                   </div>
                 </td>
-                <td className="px-6 py-6">
-                  <div className="flex items-center gap-2 text-slate-400 font-black text-[10px] uppercase">
-                    <Languages className="w-3 h-3" />
+                <td className="px-6 py-4 text-xs font-medium text-slate-600 dark:text-slate-400">
+                  <div className="flex items-center gap-1.5">
+                    <Languages className="w-3.5 h-3.5 opacity-50" />
                     {user.language === 'km' ? 'Khmer' : 'English'}
                   </div>
                 </td>
-                <td className="px-10 py-6 text-right">
+                <td className="px-8 py-4 text-right">
                   <div className="flex justify-end gap-2">
                     <button 
                       onClick={() => onAdjustCredits?.(user.id, adjustValue)}
-                      className="px-3 py-2 bg-indigo-500/10 hover:bg-indigo-500 text-indigo-400 hover:text-white rounded-xl border border-indigo-500/20 transition-all font-black text-[10px] uppercase tracking-widest"
+                      className="px-3 py-1.5 bg-indigo-50 dark:bg-indigo-500/10 hover:bg-indigo-600 dark:hover:bg-indigo-600 text-indigo-600 dark:text-indigo-400 hover:text-white rounded-lg transition-all text-[10px] font-bold uppercase"
                     >
                       Refuel
                     </button>
                     <button 
                       onClick={() => onAdjustCredits?.(user.id, -adjustValue)}
-                      className="px-3 py-2 bg-red-500/10 hover:bg-red-500 text-red-400 hover:text-white rounded-xl border border-red-500/20 transition-all font-black text-[10px] uppercase tracking-widest"
+                      className="px-3 py-1.5 hover:bg-rose-50 dark:hover:bg-rose-500/10 text-slate-400 hover:text-rose-500 rounded-lg transition-all text-[10px] font-bold uppercase"
                     >
                       Drain
                     </button>
@@ -122,3 +120,4 @@ export default function UserTable({ users, onAdjustCredits }: UserTableProps) {
     </div>
   );
 }
+

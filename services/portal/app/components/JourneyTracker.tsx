@@ -9,60 +9,58 @@ interface JourneyTrackerProps {
 
 export default function JourneyTracker({ journeys }: JourneyTrackerProps) {
   return (
-    <div className="bg-slate-900/40 backdrop-blur-xl rounded-[2.5rem] border border-slate-800/60 shadow-2xl overflow-hidden mt-10">
-      <div className="px-10 py-8 bg-slate-900/40 flex justify-between items-center border-b border-slate-800/60">
+    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden mt-8">
+      <div className="px-8 py-6 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/20">
         <div>
-          <h3 className="text-xl font-black text-white flex items-center gap-3">
-            <div className="p-2 bg-amber-500/10 rounded-lg border border-amber-500/20">
-              <MousePointer2 className="w-5 h-5 text-amber-400" />
-            </div>
-            Customer Journey Trace
+          <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <MousePointer2 className="w-5 h-5 text-indigo-500" />
+            Activity Audit
           </h3>
-          <p className="text-xs text-slate-500 mt-1 uppercase font-bold tracking-widest">Real-time behavior & interaction sequence</p>
+          <p className="text-xs text-slate-500 mt-1">Real-time behavior and interaction sequence</p>
         </div>
       </div>
       
-      <div className="p-10">
-        <div className="relative border-l-2 border-slate-800 ml-4 space-y-12">
+      <div className="p-8">
+        <div className="relative border-l border-slate-200 dark:border-slate-800 ml-3 space-y-8">
           {journeys.length > 0 ? journeys.map((step, i) => (
-            <div key={i} className="relative pl-10 group">
+            <div key={i} className="relative pl-8 group">
               {/* Timeline Dot */}
-              <div className="absolute left-[-9px] top-1 w-4 h-4 rounded-full bg-slate-900 border-2 border-slate-700 group-hover:border-amber-500 transition-colors z-10" />
+              <div className="absolute left-[-5px] top-2 w-2.5 h-2.5 rounded-full bg-white dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-700 group-hover:border-indigo-500 transition-colors z-10" />
               
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-800/20 p-6 rounded-[1.5rem] border border-slate-800/40 hover:border-slate-700 transition-all">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-5 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/20 hover:border-slate-200 dark:hover:border-slate-700 transition-all">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center shadow-lg">
-                    <User className="w-5 h-5 text-slate-500" />
+                  <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center border border-slate-200 dark:border-slate-700">
+                    <User className="w-4 h-4 text-slate-400" />
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="font-black text-white text-sm">{step.user_name || 'Anonymous'}</span>
-                      <ChevronRight className="w-3 h-3 text-slate-600" />
-                      <span className="px-2 py-0.5 bg-amber-500/10 rounded text-[9px] font-black text-amber-500 uppercase tracking-widest border border-amber-500/20">
+                      <span className="font-bold text-slate-900 dark:text-white text-sm">{step.user_name || 'Anonymous'}</span>
+                      <ChevronRight className="w-3 h-3 text-slate-400" />
+                      <span className="px-2 py-0.5 bg-indigo-50 dark:bg-indigo-500/10 rounded text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wide border border-indigo-100 dark:border-indigo-500/20">
                         {step.event_type.replace(/_/g, ' ')}
                       </span>
                     </div>
-                    <div className="flex items-center gap-4 mt-1.5">
-                      <div className="flex items-center gap-1.5 text-slate-500">
+                    <div className="flex items-center gap-3 mt-1">
+                      <div className="flex items-center gap-1 text-slate-400">
                         <Clock className="w-3 h-3" />
-                        <span className="text-[10px] font-bold font-mono uppercase">{new Date(step.created_at).toLocaleTimeString()}</span>
+                        <span className="text-[10px] font-medium uppercase">{new Date(step.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'})}</span>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-1.5 font-sans">
                   {step.metadata && Object.entries(step.metadata).map(([key, value]: [string, any], k) => (
-                    <div key={k} className="px-3 py-1 bg-slate-900 rounded-lg border border-slate-800 text-[10px] font-medium text-slate-400">
-                      <span className="text-slate-600 mr-1">{key}:</span> {String(value)}
+                    <div key={k} className="px-2 py-0.5 bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800 text-[10px] text-slate-500">
+                      <span className="text-slate-400 font-medium mr-1">{key}:</span> {String(value)}
                     </div>
                   ))}
                 </div>
               </div>
             </div>
           )) : (
-            <div className="py-20 text-center">
-               <p className="text-slate-600 font-bold uppercase tracking-widest text-xs">Awaiting User Interactions...</p>
+            <div className="py-12 text-center">
+               <p className="text-slate-400 text-sm italic font-medium">Awaiting interaction logs...</p>
             </div>
           )}
         </div>
@@ -70,3 +68,4 @@ export default function JourneyTracker({ journeys }: JourneyTrackerProps) {
     </div>
   );
 }
+
