@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 
 const PRODUCTION_GATEWAY = 'https://gateway-production.up.railway.app/api/v1';
 
@@ -33,6 +33,14 @@ export const getApiBase = (): string => {
   return 'http://localhost:3000/api/v1';
 };
 
+export interface AuditEvent {
+  id: string;
+  type: 'payment' | 'user' | 'config' | 'voice' | 'alert';
+  message: string;
+  timestamp: Date;
+  severity: 'info' | 'success' | 'warning' | 'error';
+}
+
 interface DashboardContextType {
   stats: any;
   configs: any[];
@@ -42,9 +50,19 @@ interface DashboardContextType {
   usageStats: any[];
   journeys: any[];
   retargetingData: any;
+  events: AuditEvent[];
   loading: boolean;
+  
+  // Search/Filters
+  searchTerm: string;
+  setSearchTerm: (term: string) => void;
+  filteredUsers: any[];
+  filteredTransactions: any[];
+  
+  // Actions
   updateConfig: (key: string, value: string) => Promise<void>;
   adjustCredits: (userId: string, adjustment: number) => Promise<void>;
+  bulkGiftCredits: (userIds: string[], amount: number) => Promise<void>;
   refresh: () => Promise<void>;
 }
 
@@ -59,11 +77,22 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
   const [usageStats, setUsageStats] = useState<any[]>([]);
   const [journeys, setJourneys] = useState<any[]>([]);
   const [retargetingData, setRetargetingData] = useState<any>(null);
+  const [events, setEvents] = useState<AuditEvent[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
 
-  const fetchData = async () => {
+  const addEvent = (event: Omit<AuditEvent, 'id' | 'timestamp'>) => {
+    const newEvent: AuditEvent = {
+      ...event,
+      id: Math.random().toString(36).substring(7),
+      timestamp: new Date()
+    };
+    setEvents(prev => [newEvent, ...prev].slice(0, 50));
+  };
+
+  const fetchData = async (isInitial = false) => {
     try {
-      setLoading(true);
+      if (isInitial) setLoading(true);
       const apiBase = getApiBase();
       const adminToken = getAdminToken();
       
@@ -76,6 +105,17 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
       const data = await response.json();
       
       if (data) {
+        // Detect changes for Audit Log
+        if (users.length > 0 && data.users.length > users.length) {
+          addEvent({ type: 'user', message: `New User onboarded: ${data.users[0].name || 'Anonymous'}`, severity: 'success' });
+        }
+        if (transactions.length > 0 && data.transactions.length > transactions.length) {
+          const newTx = data.transactions[0];
+          if (newTx.status === 'success') {
+            addEvent({ type: 'payment', message: `Payment Received: $${newTx.amount} from ${newTx.user_name || 'User'}`, severity: 'success' });
+          }
+        }
+
         setStats(data.stats || {});
         setConfigs(Array.isArray(data.configs) ? data.configs : []);
         setTransactions(Array.isArray(data.transactions) ? data.transactions : []);
@@ -88,18 +128,40 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
     } catch (err) {
       console.error('Failed to fetch unified dashboard data', err);
     } finally {
-      setLoading(false);
+      if (isInitial) setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchData();
-    const interval = setInterval(fetchData, 60000);
+    fetchData(true);
+    const interval = setInterval(() => fetchData(false), 60000);
     return () => clearInterval(interval);
   }, []);
 
+  // Performance optimized filtering
+  const filteredUsers = useMemo(() => {
+    if (!searchTerm) return users;
+    const s = searchTerm.toLowerCase();
+    return users.filter(u => 
+      String(u.name || '').toLowerCase().includes(s) || 
+      String(u.id || '').toLowerCase().includes(s) ||
+      String(u.email || '').toLowerCase().includes(s)
+    );
+  }, [users, searchTerm]);
+
+  const filteredTransactions = useMemo(() => {
+    if (!searchTerm) return transactions;
+    const s = searchTerm.toLowerCase();
+    return transactions.filter(t => 
+      String(t.user_name || '').toLowerCase().includes(s) || 
+      String(t.id || '').toLowerCase().includes(s) ||
+      String(t.status || '').toLowerCase().includes(s)
+    );
+  }, [transactions, searchTerm]);
+
   const updateConfig = async (key: string, value: string) => {
     try {
+      addEvent({ type: 'config', message: `Updating configuration: ${key}`, severity: 'info' });
       await fetch(`${getApiBase()}/admin/configs`, {
         method: 'POST',
         headers: { 
@@ -109,8 +171,9 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
         body: JSON.stringify({ key, value })
       });
       fetchData();
+      addEvent({ type: 'config', message: `Config ${key} optimized successfully`, severity: 'success' });
     } catch (err) {
-      alert('Failed to update config');
+      addEvent({ type: 'alert', message: `Failed to update ${key}`, severity: 'error' });
     }
   };
 
@@ -125,14 +188,30 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
         body: JSON.stringify({ userId, adjustment })
       });
       fetchData();
+      addEvent({ 
+        type: 'user', 
+        message: `${adjustment > 0 ? 'Gifted' : 'Drained'} ${Math.abs(adjustment)} credits for user ${userId.substring(0, 8)}`, 
+        severity: adjustment > 0 ? 'success' : 'warning' 
+      });
     } catch (err) {
       alert('Failed to adjust credits');
     }
   };
 
+  const bulkGiftCredits = async (userIds: string[], amount: number) => {
+    addEvent({ type: 'user', message: `Initiating bulk gift of ${amount} credits to ${userIds.length} users`, severity: 'info' });
+    // Sequentially adjust to avoid overloading (or batch if API supported it)
+    for (const id of userIds) {
+      await adjustCredits(id, amount);
+    }
+    addEvent({ type: 'user', message: `Bulk operation complete for ${userIds.length} users`, severity: 'success' });
+  };
+
   return (
     <DashboardContext.Provider value={{
-      stats, configs, transactions, revenueData, users, usageStats, journeys, retargetingData, loading, updateConfig, adjustCredits, refresh: fetchData
+      stats, configs, transactions, revenueData, users, usageStats, journeys, retargetingData, events, loading,
+      searchTerm, setSearchTerm, filteredUsers, filteredTransactions,
+      updateConfig, adjustCredits, bulkGiftCredits, refresh: () => fetchData(true)
     }}>
       {children}
     </DashboardContext.Provider>
