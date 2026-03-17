@@ -52,22 +52,30 @@ export const requireAuth = (req: Request, res: Response, next: NextFunction) => 
  */
 export const adminAuth = async (req: Request, res: Response, next: NextFunction) => {
   if (req.method === 'OPTIONS') return next();
-  const dbToken = await ConfigService.get('admin_access_token');
-  const envToken = process.env.ADMIN_TOKEN || 'lifestyle-machine-ultra-secret-2026';
-  const adminToken = dbToken || envToken;
   
   const providedToken = String(req.headers['x-admin-token'] || '');
 
-  if (!providedToken || providedToken !== adminToken) {
-    console.warn(`[Admin-Auth] Token Mismatch! 
-      Provided Length: ${String(providedToken).length} 
-      Expected Length: ${adminToken.length}
-    `);
+  // Special consideration for early development / testing
+  if (!providedToken) {
+    console.warn(`[Admin-Auth] Denied: No x-admin-token header provided for ${req.path}`);
     return res.status(401).json({ 
-      error: 'Unauthorized', 
-      message: 'Invalid or missing Admin Access Token',
-      hint: 'Check x-admin-token header matches ADMIN_TOKEN in gateway env.'
+      error: 'Access Denied', 
+      message: 'Admin Access Token required in x-admin-token header.'
     });
   }
+
+  const dbToken = await ConfigService.get('admin_access_token');
+  const envToken = process.env.ADMIN_TOKEN || 'lifestyle-machine-ultra-secret-2026';
+  const adminToken = dbToken || envToken;
+
+  if (providedToken !== adminToken) {
+    console.warn(`[Admin-Auth] Denied: Token mismatch for ${req.path}. (Provided char length: ${providedToken.length}, Expected: ${adminToken.length})`);
+    return res.status(401).json({ 
+      error: 'Access Denied', 
+      message: 'Invalid Admin Access Token.',
+      hint: 'If you are using the portal, check your "Developer Override" settings to ensure the token matches the Gateway environment.'
+    });
+  }
+
   next();
 };

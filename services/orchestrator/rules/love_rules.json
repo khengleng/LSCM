@@ -1,0 +1,21 @@
+{
+  "compatibility": {
+    "rat":    { "ox": "High", "dragon": "High", "monkey": "High", "horse": "Low" },
+    "ox":     { "rat": "High", "snake": "High", "rooster": "High", "goat": "Low" },
+    "tiger":  { "horse": "High", "dog": "High", "pig": "High", "monkey": "Low" },
+    "rabbit": { "goat": "High", "dog": "High", "pig": "High", "rooster": "Low" },
+    "dragon": { "rat": "High", "monkey": "High", "rooster": "High", "dog": "Low" },
+    "snake":  { "ox": "High", "rooster": "High", "monkey": "High", "pig": "Low" },
+    "horse":  { "tiger": "High", "goat": "High", "dog": "High", "rat": "Low" },
+    "goat":   { "rabbit": "High", "horse": "High", "pig": "High", "ox": "Low" },
+    "monkey": { "rat": "High", "dragon": "High", "snake": "High", "tiger": "Low" },
+    "rooster":{ "ox": "High", "dragon": "High", "snake": "High", "rabbit": "Low" },
+    "dog":    { "tiger": "High", "rabbit": "High", "horse": "High", "dragon": "Low" },
+    "pig":    { "tiger": "High", "rabbit": "High", "goat": "High", "snake": "Low" }
+  },
+  "meanings": {
+    "High": "អ្នកទាំងពីរមានវាសនាខ្ពស់ជាមួយគ្នា និងអាចរស់នៅប្រកបដោយសុភមង្គល។",
+    "Medium": "អ្នកទាំងពីរត្រូវតែមានការយោគយល់គ្នាឱ្យបានច្រើនដើម្បីឱ្យស្នេហានៅគង់វង្ស។",
+    "Low": "អ្នកទាំងពីរអាចមានការភាន់ច្រឡំគ្នាច្រើន។ ត្រូវអត់ធ្មត់ និងផ្តល់សេចក្តីស្រឡាញ់ឱ្យគ្នាឱ្យបានច្រើន។"
+  }
+}

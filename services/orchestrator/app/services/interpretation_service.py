@@ -4,8 +4,11 @@ from ..core.config import settings
 
 class InterpretationService:
     def __init__(self):
-        self.palm_rules = self._load_rules("palm_rules.json")
-        self.face_rules = self._load_rules("face_rules.json")
+        self.rules = {
+            "palm": self._load_rules("palm_rules.json"),
+            "face": self._load_rules("face_rules.json"),
+            "love": self._load_rules("love_rules.json")
+        }
 
     def _load_rules(self, filename: str) -> dict:
         path = os.path.join(settings.RULES_PATH, filename)
@@ -17,25 +20,34 @@ class InterpretationService:
             return {}
 
     def interpret_palm(self, features: dict) -> list:
-        """
-        Maps extracted palm features to lifestyle meanings.
-        """
         results = []
+        rules = self.rules.get("palm", {}).get("lines", {})
         for feature, value in features.items():
-            meaning = self.palm_rules.get("lines", {}).get(feature, {}).get(value)
+            meaning = rules.get(feature, {}).get(value)
             if meaning:
                 results.append(meaning)
         return results
 
     def interpret_face(self, attributes: dict) -> list:
-        """
-        Maps extracted face attributes to lifestyle meanings.
-        """
         results = []
+        rules = self.rules.get("face", {}).get("features", {})
         for attr, value in attributes.items():
-            meaning = self.face_rules.get("features", {}).get(attr, {}).get(value)
+            meaning = rules.get(attr, {}).get(value)
             if meaning:
                 results.append(meaning)
         return results
+
+    def interpret_love(self, signs: dict) -> list:
+        """
+        Calculates compatibility between two signs/profiles.
+        """
+        # Placeholder logic: in reality, this uses compatibility matrices
+        sign1 = signs.get("user")
+        sign2 = signs.get("partner")
+        
+        if not sign1 or not sign2:
+            return ["ដើម្បីដឹងពីភាពត្រូវគ្នា សូមផ្តល់ព័ត៌មានរបស់អ្នកទាំងពីរ។"]
+            
+        return [f"ភាពត្រូវគ្នារវាង {sign1} និង {sign2} គឺខ្ពស់ណាស់! អ្នកទាំងពីរមានថាមពលស្របគ្នា។"]
 
 interpretation_service = InterpretationService()
