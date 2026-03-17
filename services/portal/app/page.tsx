@@ -11,7 +11,8 @@ import {
   Cpu,
   ArrowUpRight,
   MousePointer2,
-  Target
+  Target,
+  Settings
 } from 'lucide-react';
 import { useDashboardData } from './hooks/useDashboard';
 import StatsGrid from './components/StatsGrid';
@@ -87,8 +88,26 @@ export default function Dashboard() {
                <button 
                 onClick={refresh}
                 className={`p-2 bg-slate-900 hover:bg-slate-800 text-slate-400 rounded-lg transition-all border border-slate-700 ${loading ? 'animate-spin text-indigo-400' : ''}`}
+                title="Refresh Data"
               >
                 <RefreshCcw className="w-4 h-4" />
+              </button>
+              <button 
+                onClick={() => {
+                  const url = prompt('Enter your Gateway URL (e.g. https://gateway-production.up.railway.app/api/v1):', localStorage.getItem('LSCM_API_OVERRIDE') || '');
+                  if (url !== null) {
+                    if (url.trim() === '') {
+                      localStorage.removeItem('LSCM_API_OVERRIDE');
+                    } else {
+                      localStorage.setItem('LSCM_API_OVERRIDE', url.trim());
+                    }
+                    window.location.reload();
+                  }
+                }}
+                className="p-2 bg-slate-900 hover:bg-slate-800 text-slate-400 rounded-lg transition-all border border-slate-700"
+                title="Configure API Gateway"
+              >
+                <Settings className="w-4 h-4" />
               </button>
             </div>
             <div className="h-10 w-10 bg-gradient-to-br from-indigo-500 to-indigo-700 rounded-xl flex items-center justify-center text-white font-black text-xs shadow-xl shadow-indigo-500/20 border border-white/10">

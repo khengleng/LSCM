@@ -2,11 +2,19 @@
 
 import { useState, useEffect } from 'react';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api/v1';
+const getApiBase = () => {
+  if (typeof window !== 'undefined') {
+    const override = localStorage.getItem('LSCM_API_OVERRIDE');
+    if (override) return override;
+  }
+  return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api/v1';
+};
+
+const API_BASE = getApiBase();
 const ADMIN_TOKEN = process.env.NEXT_PUBLIC_ADMIN_TOKEN || 'lifestyle-machine-ultra-secret-2026';
 
 if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && API_BASE.includes('localhost')) {
-  console.warn('⚠️ CONFIGURATION ERROR: The portal is running in production but attempting to connect to localhost. Please set NEXT_PUBLIC_API_URL in your Railway environment variables and RE-DEPLOY.');
+  console.warn('⚠️ CONFIGURATION ERROR: The portal is running in production but attempting to connect to localhost. Use the API settings in the header to fix this.');
 }
 
 export function useDashboardData() {
