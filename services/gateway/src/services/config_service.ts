@@ -52,7 +52,7 @@ export class ConfigService {
   static async warmup(): Promise<void> {
     try {
       const res = await query('SELECT key, value FROM system_configs');
-      res.rows.forEach(row => this.configCache.set(row.key, row.value));
+      res.rows.forEach((row: any) => this.configCache.set(row.key, row.value));
       console.log(`[Config-Service] Cache warmed up with ${res.rows.length} keys.`);
     } catch (err) {
       console.error('[Config-Service] Warmup failed:', err);
