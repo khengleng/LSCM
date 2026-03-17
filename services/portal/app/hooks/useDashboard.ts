@@ -2,28 +2,44 @@
 
 import { useState, useEffect } from 'react';
 
-const getApiBase = () => {
-  if (typeof window !== 'undefined') {
-    const override = localStorage.getItem('LSCM_API_OVERRIDE');
-    if (override) return override;
-
-    // Smart Fallback: If we are on lifestyle.cambobia.com, use the production gateway
-    if (window.location.hostname === 'lifestyle.cambobia.com' || window.location.hostname.includes('railway.app')) {
-      const currentConfig = process.env.NEXT_PUBLIC_API_URL;
-      if (!currentConfig || currentConfig.includes('localhost')) {
-         return 'https://gateway-production-81e8.up.railway.app/api/v1';
-      }
-    }
-  }
-  return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api/v1';
-};
-
-const API_BASE = getApiBase();
+const PRODUCTION_GATEWAY = 'https://gateway-production-81e8.up.railway.app/api/v1';
 const ADMIN_TOKEN = process.env.NEXT_PUBLIC_ADMIN_TOKEN || 'lifestyle-machine-ultra-secret-2026';
 
-if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && API_BASE.includes('localhost')) {
-  console.warn('⚠️ CONFIGURATION ERROR: The portal is running in production but attempting to connect to localhost. Use the API settings in the header to fix this.');
-}
+/**
+ * Returns the correct API base URL at call-time (NOT frozen at module load).
+ * Priority order:
+ *   1. localStorage override (set via the ⚙ Settings button in the header)
+ *   2. NEXT_PUBLIC_API_URL env var (if it's not a localhost address)
+ *   3. Known production gateway when running on a non-localhost hostname
+ *   4. Localhost fallback (dev only)
+ */
+export const getApiBase = (): string => {
+  if (typeof window === 'undefined') {
+    // SSR context — return env var or a safe placeholder (won't be used for actual fetches)
+    return process.env.NEXT_PUBLIC_API_URL || PRODUCTION_GATEWAY;
+  }
+
+  // 1. Explicit runtime override
+  const override = localStorage.getItem('LSCM_API_OVERRIDE');
+  if (override && override.trim()) return override.trim();
+
+  // 2. Env var — only trust it if it's not pointing at localhost
+  const envUrl = process.env.NEXT_PUBLIC_API_URL;
+  if (envUrl && !envUrl.includes('localhost') && !envUrl.includes('127.0.0.1')) {
+    return envUrl;
+  }
+
+  // 3. Production hostname detected — use the known gateway
+  const hostname = window.location.hostname;
+  if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
+    if (envUrl && !envUrl.includes('localhost')) return envUrl;
+    console.warn('⚠️ CONFIGURATION ERROR: The portal is running in production but NEXT_PUBLIC_API_URL points to localhost. Falling back to the production gateway. Use the ⚙ Settings button in the header to override.');
+    return PRODUCTION_GATEWAY;
+  }
+
+  // 4. Dev localhost fallback
+  return 'http://localhost:3000/api/v1';
+};
 
 export function useDashboardData() {
   const [stats, setStats] = useState<any>(null);
@@ -50,8 +66,9 @@ export function useDashboardData() {
         'retargeting'
       ];
       
+      const apiBase = getApiBase();
       const responses = await Promise.all(
-        endpoints.map(e => fetch(`${API_BASE}/admin/${e}`, {
+        endpoints.map(e => fetch(`${apiBase}/admin/${e}`, {
           headers: { 'x-admin-token': ADMIN_TOKEN }
         }))
       );
@@ -81,7 +98,7 @@ export function useDashboardData() {
 
   const updateConfig = async (key: string, value: string) => {
     try {
-      await fetch(`${API_BASE}/admin/configs`, {
+      await fetch(`${getApiBase()}/admin/configs`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -97,7 +114,7 @@ export function useDashboardData() {
 
   const adjustCredits = async (userId: string, adjustment: number) => {
     try {
-      await fetch(`${API_BASE}/admin/users/adjust-credits`, {
+      await fetch(`${getApiBase()}/admin/users/adjust-credits`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',

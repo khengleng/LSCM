@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Activity, 
   RefreshCcw,
@@ -14,7 +14,7 @@ import {
   Target,
   Settings
 } from 'lucide-react';
-import { useDashboardData } from './hooks/useDashboard';
+import { useDashboardData, getApiBase } from './hooks/useDashboard';
 import StatsGrid from './components/StatsGrid';
 import RevenueChart from './components/RevenueChart';
 import ConfigPanel from './components/ConfigPanel';
@@ -38,6 +38,12 @@ export default function Dashboard() {
     adjustCredits,
     refresh 
   } = useDashboardData();
+
+  // Resolve actual runtime API URL after hydration (reads localStorage override, etc.)
+  const [resolvedApiUrl, setResolvedApiUrl] = useState<string>('');
+  useEffect(() => {
+    setResolvedApiUrl(getApiBase());
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#020617] text-slate-200 selection:bg-indigo-500/30 font-sans">
@@ -74,9 +80,9 @@ export default function Dashboard() {
                 <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Global Ops Active</span>
               </div>
               <span className={`text-[8px] font-mono border px-1.5 py-0.5 rounded uppercase tracking-tighter ${
-                process.env.NEXT_PUBLIC_API_URL ? 'text-slate-600 border-slate-800' : 'text-rose-500 border-rose-500/50 bg-rose-500/5'
+                resolvedApiUrl && !resolvedApiUrl.includes('localhost') ? 'text-slate-600 border-slate-800' : 'text-rose-500 border-rose-500/50 bg-rose-500/5'
               }`}>
-                Target: {process.env.NEXT_PUBLIC_API_URL || 'Localhost (Fallback)'}
+                Target: {resolvedApiUrl || 'Resolving...'}
               </span>
             </div>
           </div>
