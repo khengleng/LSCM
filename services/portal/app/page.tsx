@@ -176,7 +176,7 @@ export default function Dashboard() {
                <Target className="w-6 h-6 text-indigo-500" />
                <h3 className="text-2xl font-black text-white tracking-tighter uppercase">Conversion Funnels</h3>
             </div>
-            <RetargetingHub data={retargetingData} />
+            <RetargetingHub data={retargetingData} onRetarget={adjustCredits} />
           </div>
 
           {/* Behavior Analysis Section */}

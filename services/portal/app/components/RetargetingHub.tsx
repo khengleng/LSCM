@@ -5,9 +5,10 @@ import { Target, AlertCircle, ShoppingCart, ArrowRight, UserPlus, Zap } from 'lu
 
 interface RetargetingHubProps {
   data: any;
+  onRetarget: (userId: string, amount: number) => void;
 }
 
-export default function RetargetingHub({ data }: RetargetingHubProps) {
+export default function RetargetingHub({ data, onRetarget }: RetargetingHubProps) {
   const hotLeads = data?.hot_leads || [];
   const abandoned = data?.abandoned_payments || [];
 
@@ -42,10 +43,13 @@ export default function RetargetingHub({ data }: RetargetingHubProps) {
               </div>
               <div className="flex items-center gap-3">
                 <span className="px-2 py-1 bg-red-500/10 text-red-500 text-[9px] font-black rounded border border-red-500/20 uppercase">
-                  Balance: {user.credit_balance}
+                  Bal: {user.credit_balance}
                 </span>
-                <button className="p-2 text-slate-400 hover:text-white transition-colors">
-                  <ArrowRight className="w-4 h-4" />
+                <button 
+                  onClick={() => onRetarget(user.id, 2)}
+                  className="px-3 py-1.5 bg-orange-600/20 hover:bg-orange-600 text-orange-400 hover:text-white text-[9px] font-black rounded-lg border border-orange-500/30 transition-all uppercase tracking-widest"
+                >
+                  Boost +2
                 </button>
               </div>
             </div>
@@ -84,8 +88,14 @@ export default function RetargetingHub({ data }: RetargetingHubProps) {
                   <p className="text-[10px] text-slate-500 font-bold">Initiated: {new Date(tx.created_at).toLocaleTimeString()}</p>
                 </div>
               </div>
-              <button className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] font-black rounded-lg uppercase tracking-widest shadow-lg shadow-indigo-600/20 transition-all">
-                Retarget
+              <button 
+                onClick={() => {
+                  onRetarget(tx.user_id, 5);
+                  alert(`Sent $${tx.amount} equivalent engagement bonus to ${tx.user_name}`);
+                }}
+                className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] font-black rounded-lg uppercase tracking-widest shadow-lg shadow-indigo-600/20 transition-all"
+              >
+                Send Gift
               </button>
             </div>
           )) : (
