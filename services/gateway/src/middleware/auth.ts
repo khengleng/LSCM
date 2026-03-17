@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { AuthRequest, Platform } from '../types/auth';
 import { UserRepository } from '../services/user_repository';
+import { ConfigService } from '../services/config_service';
 
 /**
  * Authenticates requests from different platforms.
@@ -49,11 +50,14 @@ export const requireAuth = (req: Request, res: Response, next: NextFunction) => 
 /**
  * Secures admin-only endpoints.
  */
-export const adminAuth = (req: Request, res: Response, next: NextFunction) => {
-  const adminToken = process.env.ADMIN_TOKEN || 'lifestyle-machine-ultra-secret-2026';
+export const adminAuth = async (req: Request, res: Response, next: NextFunction) => {
+  const dbToken = await ConfigService.get('admin_access_token');
+  const envToken = process.env.ADMIN_TOKEN || 'lifestyle-machine-ultra-secret-2026';
+  const adminToken = dbToken || envToken;
+  
   const providedToken = req.headers['x-admin-token'];
 
-  if (providedToken !== adminToken) {
+  if (!providedToken || providedToken !== adminToken) {
     return res.status(403).json({ 
       error: 'Forbidden', 
       message: 'Invalid or missing Admin Access Token' 

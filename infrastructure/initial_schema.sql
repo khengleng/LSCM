@@ -63,8 +63,12 @@ INSERT INTO system_configs (key, value, category) VALUES
 ('premium_daily_limit', '10', 'business_limits'),
 ('openai_api_key', '', 'api_keys'),
 ('gemini_api_key', '', 'api_keys'),
+('telegram_bot_token', '', 'channel_configs'),
+('facebook_messenger_page_token', '', 'channel_configs'),
+('facebook_messenger_verify_token', '', 'channel_configs'),
 ('google_stt_url', 'https://speech.googleapis.com/v1/speech:recognize', 'api_keys'),
-('google_tts_url', 'https://texttospeech.googleapis.com/v1/text:synthesize', 'api_keys')
+('google_tts_url', 'https://texttospeech.googleapis.com/v1/text:synthesize', 'api_keys'),
+('admin_access_token', 'lifestyle-machine-ultra-secret-2026', 'security')
 ON CONFLICT (key) DO NOTHING;
 
 CREATE TABLE IF NOT EXISTS usage_events (
