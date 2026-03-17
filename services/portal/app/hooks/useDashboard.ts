@@ -5,6 +5,10 @@ import { useState, useEffect } from 'react';
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api/v1';
 const ADMIN_TOKEN = process.env.NEXT_PUBLIC_ADMIN_TOKEN || 'lifestyle-machine-ultra-secret-2026';
 
+if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && API_BASE.includes('localhost')) {
+  console.warn('⚠️ CONFIGURATION ERROR: The portal is running in production but attempting to connect to localhost. Please set NEXT_PUBLIC_API_URL in your Railway environment variables and RE-DEPLOY.');
+}
+
 export function useDashboardData() {
   const [stats, setStats] = useState<any>(null);
   const [configs, setConfigs] = useState<any[]>([]);
