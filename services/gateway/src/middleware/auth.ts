@@ -51,16 +51,22 @@ export const requireAuth = (req: Request, res: Response, next: NextFunction) => 
  * Secures admin-only endpoints.
  */
 export const adminAuth = async (req: Request, res: Response, next: NextFunction) => {
+  if (req.method === 'OPTIONS') return next();
   const dbToken = await ConfigService.get('admin_access_token');
   const envToken = process.env.ADMIN_TOKEN || 'lifestyle-machine-ultra-secret-2026';
   const adminToken = dbToken || envToken;
   
-  const providedToken = req.headers['x-admin-token'];
+  const providedToken = String(req.headers['x-admin-token'] || '');
 
   if (!providedToken || providedToken !== adminToken) {
-    return res.status(403).json({ 
-      error: 'Forbidden', 
-      message: 'Invalid or missing Admin Access Token' 
+    console.warn(`[Admin-Auth] Token Mismatch! 
+      Provided Length: ${String(providedToken).length} 
+      Expected Length: ${adminToken.length}
+    `);
+    return res.status(401).json({ 
+      error: 'Unauthorized', 
+      message: 'Invalid or missing Admin Access Token',
+      hint: 'Check x-admin-token header matches ADMIN_TOKEN in gateway env.'
     });
   }
   next();

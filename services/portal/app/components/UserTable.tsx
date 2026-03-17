@@ -19,9 +19,9 @@ export default function UserTable({ users, onAdjustCredits }: UserTableProps) {
           <div>
             <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
               <User className="w-5 h-5 text-indigo-500" />
-              Users
+              User Management
             </h3>
-            <p className="text-xs text-slate-500 mt-1">Manage user accounts and credit allocations</p>
+            <p className="text-xs text-slate-500 mt-1">Audit logs for user readings and manual credit adjustments (Refuel/Drain)</p>
           </div>
           
           <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800 p-1 rounded-lg border border-slate-200 dark:border-slate-700">
@@ -67,11 +67,11 @@ export default function UserTable({ users, onAdjustCredits }: UserTableProps) {
                 <td className="px-8 py-4">
                   <div className="flex items-center gap-3">
                     <div className="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-xs font-bold text-slate-500 group-hover:bg-indigo-50 dark:group-hover:bg-indigo-500/10 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-                      {user.name?.substring(0, 2).toUpperCase() || '??'}
+                      {user.name ? user.name.substring(0, 2).toUpperCase() : '??'}
                     </div>
                     <div>
                       <p className="font-semibold text-slate-900 dark:text-white text-sm leading-tight">{user.name || 'Anonymous'}</p>
-                      <p className="text-[10px] text-slate-400 font-mono mt-0.5">ID: {user.id.substring(0, 10)}...</p>
+                      <p className="text-[10px] text-slate-400 font-mono mt-0.5">ID: {String(user.id || '').substring(0, 10)}...</p>
                     </div>
                   </div>
                 </td>

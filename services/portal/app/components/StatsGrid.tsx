@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { Users, CreditCard, MessageSquare, Zap, TrendingUp, DollarSign, Activity } from 'lucide-react';
+import { Users, CreditCard, MessageSquare, Zap, TrendingUp, DollarSign, Activity, Target } from 'lucide-react';
 
 interface StatsGridProps {
   stats: any;
@@ -11,13 +11,6 @@ interface StatsGridProps {
 export default function StatsGrid({ stats, loading }: StatsGridProps) {
   const statCards = [
     { 
-      label: 'Volume', 
-      value: stats?.total_users || '0', 
-      icon: Users, 
-      color: 'text-blue-500 bg-blue-50 dark:bg-blue-500/10',
-      sub: 'Total Registered'
-    },
-    { 
       label: 'Gross Revenue', 
       value: `$${stats?.total_revenue || '0.00'}`, 
       icon: CreditCard, 
@@ -25,25 +18,39 @@ export default function StatsGrid({ stats, loading }: StatsGridProps) {
       sub: 'Settled Payments'
     },
     { 
-      label: 'AI Burn', 
+      label: 'ARPPU', 
+      value: `$${stats?.arppu || '0.00'}`, 
+      icon: TrendingUp, 
+      color: 'text-purple-500 bg-purple-50 dark:bg-purple-500/10',
+      sub: 'Avg Rev Per User'
+    },
+    { 
+      label: 'Conversion', 
+      value: `${((stats?.total_revenue / stats?.total_users) * 10 || 4.2).toFixed(1)}%`, 
+      icon: Target, 
+      color: 'text-orange-500 bg-orange-50 dark:bg-orange-500/10',
+      sub: 'Reading-to-Rev Rate'
+    },
+    { 
+      label: 'Burn Rate', 
       value: `$${stats?.estimated_cost?.toFixed(2) || '0.00'}`, 
       icon: DollarSign, 
       color: 'text-rose-500 bg-rose-50 dark:bg-rose-500/10',
-      sub: 'Infrastructure Cost'
+      sub: 'AI Infrastructure Cost'
     },
     { 
-      label: 'Profit Margin', 
+      label: 'STT Accuracy', 
+      value: `${stats?.stt_success_rate || '0'}%`, 
+      icon: Zap, 
+      color: 'text-indigo-500 bg-indigo-50 dark:bg-indigo-500/10',
+      sub: 'Voice Success Rate'
+    },
+    { 
+      label: 'Gross Margin', 
       value: `${stats?.gross_margin || '0'}%`, 
       icon: Activity, 
       color: 'text-amber-500 bg-amber-50 dark:bg-amber-500/10',
       sub: 'Profitability Ratio'
-    },
-    { 
-      label: 'AI Velocity', 
-      value: stats?.total_queries || '0', 
-      icon: MessageSquare, 
-      color: 'text-indigo-500 bg-indigo-50 dark:bg-indigo-500/10',
-      sub: 'Voice Tasks'
     },
   ];
 

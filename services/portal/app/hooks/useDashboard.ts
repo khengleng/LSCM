@@ -2,42 +2,36 @@
 
 import { useState, useEffect } from 'react';
 
-const PRODUCTION_GATEWAY = 'https://gateway-production-81e8.up.railway.app/api/v1';
-const ADMIN_TOKEN = process.env.NEXT_PUBLIC_ADMIN_TOKEN || 'lifestyle-machine-ultra-secret-2026';
+const PRODUCTION_GATEWAY = 'https://gateway-production.up.railway.app/api/v1';
+export const getAdminToken = (): string => {
+  if (typeof window !== 'undefined') {
+    const override = localStorage.getItem('LSCM_ADMIN_TOKEN_OVERRIDE');
+    if (override && override.trim()) return override.trim();
+  }
+  return process.env.NEXT_PUBLIC_ADMIN_TOKEN || 'lifestyle-machine-ultra-secret-2026';
+};
 
 /**
  * Returns the correct API base URL at call-time (NOT frozen at module load).
- * Priority order:
- *   1. localStorage override (set via the ⚙ Settings button in the header)
- *   2. NEXT_PUBLIC_API_URL env var (if it's not a localhost address)
- *   3. Known production gateway when running on a non-localhost hostname
- *   4. Localhost fallback (dev only)
  */
 export const getApiBase = (): string => {
   if (typeof window === 'undefined') {
-    // SSR context — return env var or a safe placeholder (won't be used for actual fetches)
     return process.env.NEXT_PUBLIC_API_URL || PRODUCTION_GATEWAY;
   }
 
-  // 1. Explicit runtime override
   const override = localStorage.getItem('LSCM_API_OVERRIDE');
   if (override && override.trim()) return override.trim();
 
-  // 2. Env var — only trust it if it's not pointing at localhost
   const envUrl = process.env.NEXT_PUBLIC_API_URL;
   if (envUrl && !envUrl.includes('localhost') && !envUrl.includes('127.0.0.1')) {
     return envUrl;
   }
 
-  // 3. Production hostname detected — use the known gateway
   const hostname = window.location.hostname;
   if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
-    if (envUrl && !envUrl.includes('localhost')) return envUrl;
-    console.warn('⚠️ CONFIGURATION ERROR: The portal is running in production but NEXT_PUBLIC_API_URL points to localhost. Falling back to the production gateway. Use the ⚙ Settings button in the header to override.');
     return PRODUCTION_GATEWAY;
   }
 
-  // 4. Dev localhost fallback
   return 'http://localhost:3000/api/v1';
 };
 
@@ -67,22 +61,29 @@ export function useDashboardData() {
       ];
       
       const apiBase = getApiBase();
+      const adminToken = getAdminToken();
       const responses = await Promise.all(
         endpoints.map(e => fetch(`${apiBase}/admin/${e}`, {
-          headers: { 'x-admin-token': ADMIN_TOKEN }
+          headers: { 'x-admin-token': adminToken }
         }))
       );
 
-      const data = await Promise.all(responses.map(r => r.json()));
+      const data = await Promise.all(responses.map(async (r, i) => {
+        if (!r.ok) {
+          console.warn(`[API] Endpoint /admin/${endpoints[i]} failed with status ${r.status}`);
+          return [1, 2, 3, 4, 5, 6].includes(i) ? [] : null;
+        }
+        try { return await r.json(); } catch(e) { return null; }
+      }));
 
-      setStats(data[0]);
-      setConfigs(data[1]);
-      setTransactions(data[2]);
-      setRevenueData(data[3]);
-      setUsers(data[4]);
-      setUsageStats(data[5]);
-      setJourneys(data[6]);
-      setRetargetingData(data[7]);
+      setStats(data[0] || {});
+      setConfigs(Array.isArray(data[1]) ? data[1] : []);
+      setTransactions(Array.isArray(data[2]) ? data[2] : []);
+      setRevenueData(Array.isArray(data[3]) ? data[3] : []);
+      setUsers(Array.isArray(data[4]) ? data[4] : []);
+      setUsageStats(Array.isArray(data[5]) ? data[5] : []);
+      setJourneys(Array.isArray(data[6]) ? data[6] : []);
+      setRetargetingData(data[7] || {});
     } catch (err) {
       console.error('Failed to fetch dashboard data', err);
     } finally {
@@ -102,7 +103,7 @@ export function useDashboardData() {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'x-admin-token': ADMIN_TOKEN
+          'x-admin-token': getAdminToken()
         },
         body: JSON.stringify({ key, value })
       });
@@ -118,7 +119,7 @@ export function useDashboardData() {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'x-admin-token': ADMIN_TOKEN
+          'x-admin-token': getAdminToken()
         },
         body: JSON.stringify({ userId, adjustment })
       });

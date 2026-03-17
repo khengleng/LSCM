@@ -5,6 +5,14 @@ import Script from "next/script";
 export const metadata: Metadata = {
   title: "Lifestyle Machine | Admin Portal",
   description: "Operations dashboard for managing Lifestyle Machine AI platform.",
+  icons: {
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/favicon.ico" }
+    ],
+    shortcut: "/favicon.svg",
+    apple: "/favicon.svg",
+  },
 };
 
 export default function RootLayout({

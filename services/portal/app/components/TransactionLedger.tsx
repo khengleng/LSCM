@@ -15,9 +15,9 @@ export default function TransactionLedger({ transactions }: TransactionLedgerPro
         <div>
           <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
             <Database className="w-5 h-5 text-indigo-500" />
-            Transactions
+            Financial Ledger
           </h3>
-          <p className="text-xs text-slate-500 mt-1">Audit log of all financial activities</p>
+          <p className="text-xs text-slate-500 mt-1">Track successful KHQR top-ups, subscription revenue, and profit margins</p>
         </div>
         <button 
           onClick={() => exportToCSV(transactions, 'transactions_ledger')}

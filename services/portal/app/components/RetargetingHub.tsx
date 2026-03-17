@@ -20,7 +20,7 @@ export default function RetargetingHub({ data, onRetarget }: RetargetingHubProps
           <div>
             <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
               <Zap className="w-4 h-4 text-amber-500" />
-              Stalled Profiles
+              Hot Leads
             </h3>
             <p className="text-xs text-slate-500 mt-0.5 font-medium">Users with high intent but low credit balances</p>
           </div>
@@ -67,7 +67,7 @@ export default function RetargetingHub({ data, onRetarget }: RetargetingHubProps
           <div>
             <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
               <ShoppingCart className="w-4 h-4 text-indigo-500" />
-              Incomplete checkouts
+              Abandoned Payments
             </h3>
             <p className="text-xs text-slate-500 mt-0.5 font-medium">Pending payments requiring intervention</p>
           </div>

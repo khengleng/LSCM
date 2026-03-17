@@ -50,31 +50,35 @@ export default function Dashboard() {
       {/* Sidebar */}
       <nav className="fixed left-0 top-0 bottom-0 w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 z-[60] flex flex-col hidden lg:flex">
         <div className="p-6 border-b border-slate-200 dark:border-slate-800 flex items-center gap-3">
-          <div className="p-2 bg-indigo-600 rounded-lg shrink-0">
+          <div className="p-2 bg-slate-900 dark:bg-indigo-600 rounded-lg shrink-0">
             <Cpu className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h1 className="text-sm font-bold tracking-tight text-slate-900 dark:text-white uppercase">LifeStyle Machine</h1>
-            <p className="text-[10px] text-slate-500 font-medium">Ops Dashboard v1.0.4</p>
+            <h1 className="text-sm font-bold tracking-tight text-slate-900 dark:text-white uppercase">Lifestyle Machine</h1>
+            <p className="text-[10px] text-slate-500 font-medium">Ops Dashboard v1.0.5</p>
           </div>
         </div>
         
         <div className="flex-1 py-6 px-4 space-y-1">
-          <button className="w-full flex items-center gap-3 px-3 py-2 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-lg text-sm font-semibold transition-all">
+          <button className="w-full flex items-center gap-3 px-3 py-2 bg-slate-50 dark:bg-indigo-500/10 text-slate-900 dark:text-indigo-400 rounded-lg text-sm font-bold transition-all">
             <LayoutDashboard className="w-4 h-4" />
-            Overview
+            Control Center
           </button>
           <button className="w-full flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-lg text-sm font-medium transition-all">
             <UsersIcon className="w-4 h-4" />
-            Users
+            User Management
           </button>
           <button className="w-full flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-lg text-sm font-medium transition-all">
             <Target className="w-4 h-4" />
-            Funnels
+            Retargeting Hub
           </button>
           <button className="w-full flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-lg text-sm font-medium transition-all">
             <PaymentIcon className="w-4 h-4" />
-            Finance
+            Financial Ledger
+          </button>
+          <button className="w-full flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-lg text-sm font-medium transition-all">
+            <MousePointer2 className="w-4 h-4" />
+            Journey Trace
           </button>
         </div>
 
@@ -121,6 +125,12 @@ export default function Dashboard() {
                 if (url !== null) {
                   if (url.trim() === '') localStorage.removeItem('LSCM_API_OVERRIDE');
                   else localStorage.setItem('LSCM_API_OVERRIDE', url.trim());
+                  
+                  const token = prompt('Enter Admin Access Token:', localStorage.getItem('LSCM_ADMIN_TOKEN_OVERRIDE') || '');
+                  if (token !== null) {
+                    if (token.trim() === '') localStorage.removeItem('LSCM_ADMIN_TOKEN_OVERRIDE');
+                    else localStorage.setItem('LSCM_ADMIN_TOKEN_OVERRIDE', token.trim());
+                  }
                   window.location.reload();
                 }
               }}
@@ -137,29 +147,29 @@ export default function Dashboard() {
 
         <main className="p-8 max-w-7xl mx-auto space-y-8">
           <div>
-            <h2 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Console Overview</h2>
-            <p className="text-slate-500 mt-1">Manage operations and monitor business lifecycle.</p>
+            <h2 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Lifestyle Control Center</h2>
+            <p className="text-slate-500 mt-1">Operational oversight for voice-first lifestyle engagement engines.</p>
           </div>
 
           {/* Stats Section */}
           <StatsGrid stats={stats} loading={loading} />
 
-          {/* Core Analytics */}
+          {/* Performance & Configuration Zone */}
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
             <div className="xl:col-span-2 space-y-6">
               <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
                 <div className="flex justify-between items-center mb-6">
                   <div>
                     <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                      <TrendingUp className="w-4 h-4 text-indigo-500" />
-                      Revenue Velocity
+                       <TrendingUp className="w-4 h-4 text-indigo-500" />
+                      Financial Performance
                     </h3>
-                    <p className="text-xs text-slate-500 font-medium">Daily transaction accumulation and trends</p>
+                    <p className="text-xs text-slate-500 font-medium">Gross revenue trends and settlement velocity</p>
                   </div>
                 </div>
                 
                 <div className="h-[350px] w-full">
-                  {revenueData && revenueData.length > 0 ? (
+                  {Array.isArray(revenueData) && revenueData.length > 0 ? (
                     <RevenueChart data={revenueData} />
                   ) : (
                     <div className="h-full w-full bg-slate-50 dark:bg-slate-950/20 border border-dashed border-slate-200 dark:border-slate-800 rounded-xl flex flex-col items-center justify-center">
@@ -171,13 +181,13 @@ export default function Dashboard() {
               </div>
 
               <div className="grid grid-cols-3 gap-4">
-                {usageStats?.slice(0, 3).map((u, i) => (
+                {Array.isArray(usageStats) && usageStats.slice(0, 3).map((u, i) => (
                   <div key={i} className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
                     <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">{u.event_type.replace(/_/g, ' ')} Utilization</span>
                     <div className="flex items-center justify-between mt-2">
                       <span className="text-xl font-bold text-slate-900 dark:text-white">{u.count}</span>
-                      <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-500 bg-emerald-50 dark:bg-emerald-500/10 px-1.5 py-0.5 rounded">
-                        <ArrowUpRight className="w-3 h-3" /> Live
+                      <span className="flex items-center gap-1 text-[10px] font-bold text-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 px-1.5 py-0.5 rounded">
+                        <Activity className="w-3 h-3" /> Live
                       </span>
                     </div>
                   </div>
@@ -186,39 +196,47 @@ export default function Dashboard() {
             </div>
 
             <div className="space-y-8">
-              <ConfigPanel configs={configs} onUpdate={updateConfig} />
+              <ConfigPanel configs={Array.isArray(configs) ? configs : []} onUpdate={updateConfig} />
               
-              <div className="bg-indigo-600 rounded-2xl p-6 text-white relative overflow-hidden shadow-lg shadow-indigo-500/20 group">
+              <div className="bg-slate-900 dark:bg-slate-900 rounded-2xl p-6 text-white relative overflow-hidden shadow-sm group border border-slate-800">
                 <Cpu className="absolute -bottom-10 -right-10 w-48 h-48 opacity-10 -rotate-12 transition-transform group-hover:scale-110 duration-500" />
-                <h4 className="text-lg font-bold">Health Protocol</h4>
-                <p className="text-indigo-100/70 text-xs mt-1">Orchestrator Status: ACTIVE</p>
+                <h4 className="text-lg font-bold">Orchestration Health</h4>
+                <p className="text-slate-400 text-xs mt-1">System Load Node: ACTIVE</p>
                 
                 <div className="mt-8 space-y-2">
                   <div className="flex justify-between text-[10px] font-bold uppercase tracking-wider">
-                    <span>Processing Quota</span>
+                    <span>Throughput Capacity</span>
                     <span>85%</span>
                   </div>
-                  <div className="h-1.5 w-full bg-white/20 rounded-full overflow-hidden">
-                    <div className="h-full w-[85%] bg-white rounded-full shadow-[0_0_8px_rgba(255,255,255,0.5)]" />
+                  <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+                    <div className="h-full w-[85%] bg-indigo-500 rounded-full" />
                   </div>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Business Modules */}
+          {/* Growth & Success Section */}
           <div className="space-y-4 pt-4 border-t border-slate-200 dark:border-slate-800">
              <div className="flex items-center gap-2">
                <Target className="w-5 h-5 text-indigo-500" />
-               <h3 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight leading-none">Conversion Pipelines</h3>
+               <h3 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight leading-none uppercase text-[12px] tracking-widest text-slate-400">Section 01: Customer Success Hub</h3>
              </div>
              <RetargetingHub data={retargetingData} onRetarget={adjustCredits} />
           </div>
 
-          <div className="space-y-6">
-            <JourneyTracker journeys={journeys} />
-            <UserTable users={users} onAdjustCredits={adjustCredits} />
-            <TransactionLedger transactions={transactions} />
+          {/* Business Operations Audit Zone */}
+          <div className="space-y-12 pt-12 border-t border-slate-200 dark:border-slate-800">
+            <div className="flex items-center gap-2">
+               <Activity className="w-5 h-5 text-indigo-500" />
+               <h3 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight leading-none uppercase text-[12px] tracking-widest text-slate-400">Section 02: Operations Ledger & Audit</h3>
+             </div>
+            
+            <div className="space-y-12">
+              <UserTable users={Array.isArray(users) ? users : []} onAdjustCredits={adjustCredits} />
+              <TransactionLedger transactions={Array.isArray(transactions) ? transactions : []} />
+              <JourneyTracker journeys={Array.isArray(journeys) ? journeys : []} />
+            </div>
           </div>
         </main>
 

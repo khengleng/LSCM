@@ -14,9 +14,9 @@ export default function JourneyTracker({ journeys }: JourneyTrackerProps) {
         <div>
           <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
             <MousePointer2 className="w-5 h-5 text-indigo-500" />
-            Activity Audit
+            Customer Journey Trace
           </h3>
-          <p className="text-xs text-slate-500 mt-1">Real-time behavior and interaction sequence</p>
+          <p className="text-xs text-slate-500 mt-1">Sequential event tracking to audit platform flow and identify drop-off points</p>
         </div>
       </div>
       
@@ -35,9 +35,8 @@ export default function JourneyTracker({ journeys }: JourneyTrackerProps) {
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="font-bold text-slate-900 dark:text-white text-sm">{step.user_name || 'Anonymous'}</span>
-                      <ChevronRight className="w-3 h-3 text-slate-400" />
                       <span className="px-2 py-0.5 bg-indigo-50 dark:bg-indigo-500/10 rounded text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wide border border-indigo-100 dark:border-indigo-500/20">
-                        {step.event_type.replace(/_/g, ' ')}
+                        {String(step.event_type || 'Unknown').replace(/_/g, ' ')}
                       </span>
                     </div>
                     <div className="flex items-center gap-3 mt-1">

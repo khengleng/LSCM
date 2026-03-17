@@ -9,25 +9,34 @@ dotenv.config();
 
 const app = express();
 
-// Middleware
-app.use(helmet({
-  crossOriginResourcePolicy: false, // Allow images/resources across origins
-}));
+// 1. CORS (Must be at the very top to handle preflights)
 app.use(cors({
   origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
-    // Allow: no origin (server-to-server), custom domain, localhost, and any Railway app
-    if (
-      !origin ||
-      origin === 'https://lifestyle.cambobia.com' ||
-      origin.includes('railway.app') ||
-      origin.startsWith('http://localhost')
-    ) {
+    if (!origin) return callback(null, true);
+    
+    const allowedOrigins = [
+      'https://lifestyle.cambobia.com',
+      'http://localhost',
+      'railway.app'
+    ];
+
+    const isAllowed = allowedOrigins.some(ao => origin.includes(ao));
+    
+    if (isAllowed) {
       callback(null, true);
     } else {
-      callback(new Error(`CORS: Origin '${origin}' not allowed`));
+      console.warn(`[CORS] Blocked origin: ${origin}`);
+      callback(null, false); // Don't throw error, just disallow
     }
   },
-  credentials: true
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-admin-token', 'x-platform', 'x-platform-id']
+}));
+
+// 2. Security & Logging
+app.use(helmet({
+  crossOriginResourcePolicy: false,
 }));
 app.use(morgan('dev'));
 app.use(express.json());
