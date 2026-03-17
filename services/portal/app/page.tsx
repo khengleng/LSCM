@@ -34,6 +34,7 @@ export default function Dashboard() {
     retargetingData,
     loading, 
     updateConfig, 
+    adjustCredits,
     refresh 
   } = useDashboardData();
 
