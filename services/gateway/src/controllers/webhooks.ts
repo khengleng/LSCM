@@ -132,58 +132,103 @@ const sendTelegramMessage = async (chatId: string | number, text: string, audioU
   }
 };
 
+import { UserRepository } from '../services/user_repository';
+import { QuotaService } from '../services/quota_service';
+import { query } from '../services/db_service';
+import { Platform } from '../types/auth';
+
 // ─────────────────────────────────────────────────────────────────────────────
-// Main message handler: receive → orchestrate → reply
+// Main message handler: receive → authenticate → orchestrate → reply
 // ─────────────────────────────────────────────────────────────────────────────
 const handleIncomingMessage = async (
   platformId: string,
   message:    any,
-  platform:   string,
+  platform:   Platform,
 ) => {
   try {
-    const orchestratorUrl = process.env.ORCHESTRATOR_URL || 'http://localhost:8000';
+    // 1. Authenticate / Identify User
+    const user = await UserRepository.findOrCreateUser(platformId, platform);
 
-    const payload = {
-      platform,
-      platformId,
-      text:      message.text    || null,
-      voice_url: message.voice?.file_id
-               || message.attachments?.[0]?.payload?.url
-               || null,
-    };
+    // 2. Enforce Daily Quota / Credit Check
+    const actionType = (message.text?.toLowerCase().includes('reading') || !!message.photo || !!message.attachments) ? 'READING' : 'QUERY';
+    const { allowed, remaining } = await QuotaService.checkAndDeductQuota(user, actionType);
 
-    console.log(`[Gateway] Dispatching ${platform} request to Orchestrator for: ${platformId}`);
-
-    // ✅ Forward to Python Orchestrator and get the AI response
-    const response = await axios.post(`${orchestratorUrl}/api/v1/query`, payload, {
-      headers: { 'Content-Type': 'application/json' },
-      timeout: 30000, // 30s — AI can be slow
-    });
-
-    const { response_text, audio_url } = response.data;
-
-    if (!response_text) {
-      console.warn('[Gateway] Orchestrator returned no response_text. Skipping reply.');
+    if (!allowed) {
+      const outOfCreditsMsg = "⚠️ អ្នកបានប្រើប្រាស់កូតាឥតគិតថ្លៃអស់ហើយ។ សូមបញ្ចូលទឹកប្រាក់ (Top-up) ដើម្បីបន្តការសួរ! \n\n starter: $1 (5 questions) \n basic: $2 (15 questions)";
+      if (platform === 'FACEBOOK') await sendFacebookMessage(platformId, outOfCreditsMsg);
+      else if (platform === 'TELEGRAM') await sendTelegramMessage(platformId, outOfCreditsMsg);
       return;
     }
 
-    // ✅ Send the AI reply back to the user on their platform
+    // 3. Extract Multi-modal inputs (Image/Voice)
+    let voice_url = null;
+    let image_url = null;
+
+    if (platform === 'TELEGRAM') {
+      voice_url = message.voice?.file_id;
+      if (message.photo) {
+        // Telegram photos are an array of sizes, pick the largest
+        const largestPhoto = message.photo[message.photo.length - 1];
+        image_url = largestPhoto.file_id; 
+        // Note: In production, you'd call getFile to get the actual public path
+      }
+    } else if (platform === 'FACEBOOK') {
+      const attachment = message.attachments?.[0];
+      if (attachment?.type === 'audio') voice_url = attachment.payload.url;
+      if (attachment?.type === 'image') image_url = attachment.payload.url;
+    }
+
+    const orchestratorUrl = process.env.ORCHESTRATOR_URL || 'http://localhost:8000';
+
+    const payload = {
+      userId: user.userId,
+      platform,
+      platformId,
+      text:      message.text || message.caption || null,
+      voice_url,
+      image_url
+    };
+
+    console.log(`[Gateway] Dispatching ${platform} request to Orchestrator for User: ${user.userId}`);
+
+    // 4. Forward to AI Orchestrator
+    const response = await axios.post(`${orchestratorUrl}/api/v1/query`, payload, {
+      headers: { 'Content-Type': 'application/json' },
+      timeout: 45000,
+    });
+
+    const { response_text, audio_url, intent } = response.data;
+
+    // 5. Log the journey (for the Admin Feed)
+    await query(
+      `INSERT INTO usage_events (user_id, event_type, metadata) 
+       VALUES ($1, 'JOURNEY_STEP', $2)`,
+      [user.userId, JSON.stringify({
+        intent,
+        platform,
+        has_voice: !!voice_url,
+        has_image: !!image_url,
+        orchestration_time: new Date().toISOString()
+      })]
+    );
+
+    // 6. Send Reply
     if (platform === 'FACEBOOK') {
       await sendFacebookMessage(platformId, response_text, audio_url);
-      console.log(`[Gateway] ✅ Replied to Facebook user: ${platformId}`);
     } else if (platform === 'TELEGRAM') {
       await sendTelegramMessage(platformId, response_text, audio_url);
-      console.log(`[Gateway] ✅ Replied to Telegram user: ${platformId}`);
     }
 
   } catch (err: any) {
-    console.error(`[Gateway] Error processing message for ${platformId}:`, err.message);
+    console.error(`[Gateway] Fatal Error for ${platformId}:`, err.message);
+    const errorMsg = "សូមអភ័យទោស! ម៉ាស៊ីនជីវិតកំពុងមានបច្ចេកទេសបន្តិចបន្តួច។ សូមព្យាយាមម្តងទៀតនៅពេលបន្តិចទៀត!";
+    if (platform === 'FACEBOOK') await sendFacebookMessage(platformId, errorMsg);
+    else if (platform === 'TELEGRAM') await sendTelegramMessage(platformId, errorMsg);
   }
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Internal endpoint: Payment service calls this after a successful top-up
-// to notify the user in-channel that their credits were added.
+// Internal endpoint: Payment service notifications
 // ─────────────────────────────────────────────────────────────────────────────
 export const notifyUserOfPayment = async (req: Request, res: Response) => {
   const { userId, message } = req.body;
@@ -193,16 +238,12 @@ export const notifyUserOfPayment = async (req: Request, res: Response) => {
   }
 
   try {
-    // Resolve user's platform IDs from the DB
-    const { query } = await import('../services/db_service');
     const userRes = await query(
       `SELECT fb_psid, telegram_id FROM users WHERE id = $1`,
       [userId]
     );
 
-    if (userRes.rows.length === 0) {
-      return res.status(404).json({ error: 'User not found' });
-    }
+    if (userRes.rows.length === 0) return res.status(404).json({ error: 'User not found' });
 
     const { fb_psid, telegram_id } = userRes.rows[0];
     const promises: Promise<any>[] = [];
@@ -210,12 +251,11 @@ export const notifyUserOfPayment = async (req: Request, res: Response) => {
     if (fb_psid)      promises.push(sendFacebookMessage(fb_psid,  message));
     if (telegram_id)  promises.push(sendTelegramMessage(telegram_id, message));
 
-    await Promise.allSettled(promises); // best-effort, don't fail if one bounces
-    console.log(`[Gateway] ✅ Payment notification sent to user ${userId}`);
+    await Promise.allSettled(promises);
     return res.status(200).json({ status: 'OK' });
 
   } catch (err: any) {
-    console.error('[Gateway] Failed to send payment notification:', err.message);
-    return res.status(500).json({ error: 'Failed to notify user' });
+    console.error('[Gateway] Failed to notify user:', err.message);
+    return res.status(500).json({ error: 'Failed' });
   }
 };

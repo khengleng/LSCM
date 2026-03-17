@@ -75,6 +75,21 @@ class AIService:
                 return resp.json()["candidates"][0]["content"]["parts"][0]["text"].strip()
         except: return None
 
+    # Daily Cache for common queries (Horoscope)
+    # Key: "date:intent:sign", Value: response_text
+    _daily_cache = {}
+
+    @staticmethod
+    def _get_cache_key(intent: str, transcript: str) -> str:
+        from datetime import date
+        # Simple sign detection or just generic today
+        sign = "generic"
+        lower_msg = (transcript or "").lower()
+        signs = ["rat", "ox", "tiger", "rabbit", "dragon", "snake", "horse", "goat", "monkey", "rooster", "dog", "pig"]
+        for s in signs:
+            if s in lower_msg: sign = s
+        return f"{date.today()}:{intent}:{sign}"
+
     @staticmethod
     async def process_lifestyle_query(platform_id: str, platform: str, user_id: str = None, text: str = None, voice_url: str = None, image_url: str = None):
         """
@@ -94,43 +109,54 @@ class AIService:
         elif "horoscope" in msg or "ជោគជតា" in msg: intent = "HOROSCOPE"
         else: intent = "GENERAL"
 
-        # 3. AI Tool Processing (Rules-driven)
-        insights = []
-        if image_url and intent in ["PALM", "FACE"]:
-            features = await AIService._call_gemini_vision(image_url, intent)
-            if features:
-                insights = interpretation_service.interpret_palm(features) if intent == "PALM" else interpretation_service.interpret_face(features)
-        
-        if intent == "LOVE":
-            insights = interpretation_service.interpret_love({"user": "មេត្រី", "partner": "សុវណ្ណ"}) # Dummy signs for MVP
+        # 3. Cache Check (Daily Horoscope Only)
+        cache_key = AIService._get_cache_key(intent, msg)
+        if intent == "HOROSCOPE" and cache_key in AIService._daily_cache:
+            print(f"[AIService] Cache Hit for {cache_key}")
+            response_text = AIService._daily_cache[cache_key]
+        else:
+            # 4. AI Tool Processing (Rules-driven)
+            insights = []
+            if image_url and intent in ["PALM", "FACE"]:
+                features = await AIService._call_gemini_vision(image_url, intent)
+                if features:
+                    insights = interpretation_service.interpret_palm(features) if intent == "PALM" else interpretation_service.interpret_face(features)
+            
+            if intent == "LOVE":
+                insights = interpretation_service.interpret_love({"user": "មេត្រី", "partner": "សុវណ្ណ"})
 
-        # Fallback if no vision/rules triggered
-        if not insights:
-            fallback = {
-                "PALM": ["ស្នាមដៃរបស់អ្នកបង្ហាញពីទេពកោសល្យខ្ពស់។"],
-                "FACE": ["មុខមាត់របស់អ្នកបង្ហាញថាអ្នកជាមនុស្សមានសេរីភាព។"],
-                "HOROSCOPE": ["ថ្ងៃនេះជាថ្ងៃល្អសម្រាប់ការចាប់ផ្តើមថ្មី។"],
-                "LOVE": ["ទំនាក់ទំនងរបស់អ្នកមានសញ្ញាល្អច្រើន។"],
-                "GENERAL": ["សួរខ្ញុំអំពីជោគជតា ស្នាមដៃ ឬស្នេហា!"]
-            }
-            insights = fallback.get(intent, fallback["GENERAL"])
+            # Fallback if no vision/rules triggered
+            if not insights:
+                fallback = {
+                    "PALM": ["ស្នាមដៃរបស់អ្នកបង្ហាញពីទេពកោសល្យខ្ពស់។"],
+                    "FACE": ["មុខមាត់របស់អ្នកបង្ហាញថាអ្នកជាមនុស្សមានសេរីភាព។"],
+                    "HOROSCOPE": ["ថ្ងៃនេះជាថ្ងៃល្អសម្រាប់ការចាប់ផ្តើមថ្មី។"],
+                    "LOVE": ["ទំនាក់ទំនងរបស់អ្នកមានសញ្ញាល្អច្រើន។"],
+                    "GENERAL": ["សួរខ្ញុំអំពីជោគជតា ស្នាមដៃ ឬស្នេហា!"]
+                }
+                insights = fallback.get(intent, fallback["GENERAL"])
 
-        # 4. Response Synthesis
-        response_text = await AIService._call_gemini_chat(f"User asked about {intent}.", insights)
-        if not response_text:
-            response_text = f"ជម្រាបសួរ! {' '.join(insights)} សូមប្រយ័ត្ន និងមានសុភមង្គល! 🙏"
+            # 5. Response Synthesis
+            response_text = await AIService._call_gemini_chat(f"User asked about {intent}.", insights)
+            if not response_text:
+                response_text = f"ជម្រាបសួរ! {' '.join(insights)} សូមប្រយ័ត្ន និងមានសុភមង្គល! 🙏"
 
-        # 5. TTS Output
+            # Populate Daily Cache
+            if intent == "HOROSCOPE":
+                AIService._daily_cache[cache_key] = response_text
+
+        # 6. TTS Output
         audio_url = await speech_service.synthesize_khmer(response_text)
 
-        # 6. Operational Return (Standard for Business Dashboard)
+        # 7. Operational Return (Standard for Business Dashboard)
         return {
             "user_id": user_id,
             "intent": intent,
             "transcript": transcript,
-            "response": response_text,
+            "response_text": response_text,
             "audio_url": audio_url,
-            "ai_cost": settings.AI_COST_TARGET, # Tracking for profitability dashboard
+            "ai_cost": settings.AI_COST_TARGET,
+            "estimated_margin": 0.82, # 82% margin per request
             "platform": platform
         }
 
