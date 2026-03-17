@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { handleFacebookWebhook, handleTelegramWebhook } from '../controllers/webhooks';
+import { handleFacebookWebhook, handleTelegramWebhook, notifyUserOfPayment } from '../controllers/webhooks';
 import { platformAuth, requireAuth, adminAuth } from '../middleware/auth';
 import { enforceQuota } from '../middleware/quota';
 import { AuthRequest } from '../types/auth';
@@ -27,7 +27,10 @@ router.post('/webhooks/fb', handleFacebookWebhook);
 // Telegram
 router.post('/webhooks/tg', handleTelegramWebhook);
 
-// 2. Admin API (Web Portal -> Gateway)
+// 2. Internal service-to-service endpoints (no public auth, but only accessible within Railway private network)
+router.post('/internal/notify-user', notifyUserOfPayment);
+
+// 3. Admin API (Web Portal -> Gateway)
 router.use('/admin', adminAuth);
 router.get('/admin/stats', getDashboardStats);
 router.get('/admin/configs', getAllConfigs);
@@ -40,7 +43,7 @@ router.get('/admin/journeys', getCustomerJourneys);
 router.get('/admin/retargeting', getRetargetingData);
 router.post('/admin/users/adjust-credits', adjustUserCredits);
 
-// 3. Main API (App -> Gateway)
+// 4. Main API (App -> Gateway)
 // Protected by AuthMiddleware and QuotaMiddleware
 router.post('/query', platformAuth, requireAuth, enforceQuota, (req: Request, res: Response) => {
   const authReq = req as AuthRequest;

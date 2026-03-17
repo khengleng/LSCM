@@ -54,8 +54,8 @@ export class QuotaService {
 
   private static async logUsage(userId: string, type: string, cost: number) {
     await query(
-      `INSERT INTO usage_events (user_id, request_type, estimated_cost) VALUES ($1, $2, $3)`,
-      [userId, type, cost]
+      `INSERT INTO usage_events (user_id, event_type, metadata) VALUES ($1, $2, $3)`,
+      [userId, type, JSON.stringify({ estimated_cost: cost })]
     );
   }
 }

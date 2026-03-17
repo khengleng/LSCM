@@ -169,7 +169,7 @@ export const getRetargetingData = async (req: Request, res: Response) => {
       SELECT t.*, u.name as user_name
       FROM transactions t
       JOIN users u ON t.user_id = u.id
-      WHERE t.status = 'pending' AND t.created_at > NOW() - INTERVAL '1 hour'
+      WHERE t.status = 'pending' AND t.created_at > NOW() - INTERVAL '24 hours'
       ORDER BY t.created_at DESC
     `);
 

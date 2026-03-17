@@ -14,7 +14,19 @@ app.use(helmet({
   crossOriginResourcePolicy: false, // Allow images/resources across origins
 }));
 app.use(cors({
-  origin: ['https://lifestyle.cambobia.com', 'http://localhost:3000'],
+  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+    // Allow: no origin (server-to-server), custom domain, localhost, and any Railway app
+    if (
+      !origin ||
+      origin === 'https://lifestyle.cambobia.com' ||
+      origin.includes('railway.app') ||
+      origin.startsWith('http://localhost')
+    ) {
+      callback(null, true);
+    } else {
+      callback(new Error(`CORS: Origin '${origin}' not allowed`));
+    }
+  },
   credentials: true
 }));
 app.use(morgan('dev'));
