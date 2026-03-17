@@ -6,6 +6,14 @@ const getApiBase = () => {
   if (typeof window !== 'undefined') {
     const override = localStorage.getItem('LSCM_API_OVERRIDE');
     if (override) return override;
+
+    // Smart Fallback: If we are on lifestyle.cambobia.com, use the production gateway
+    if (window.location.hostname === 'lifestyle.cambobia.com' || window.location.hostname.includes('railway.app')) {
+      const currentConfig = process.env.NEXT_PUBLIC_API_URL;
+      if (!currentConfig || currentConfig.includes('localhost')) {
+         return 'https://gateway-production-81e8.up.railway.app/api/v1';
+      }
+    }
   }
   return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api/v1';
 };
