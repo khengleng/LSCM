@@ -65,11 +65,16 @@ export default function Dashboard() {
         <header className="sticky top-0 z-50 backdrop-blur-md bg-slate-900/40 border-b border-slate-800/40 px-10 py-5 flex justify-between items-center">
           <div className="flex flex-col">
             <h1 className="text-xl font-black bg-clip-text text-transparent bg-gradient-to-r from-white via-white to-slate-500 tracking-tighter">
-              LIFESTYLE MACHINE <span className="text-indigo-500">v1.0.1</span>
+              LIFESTYLE MACHINE <span className="text-indigo-500">v1.0.2</span>
             </h1>
-            <div className="flex items-center gap-2 mt-0.5">
-              <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-ping" />
-              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Global Ops Active</span>
+            <div className="flex items-center gap-4 mt-0.5">
+              <div className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-ping" />
+                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Global Ops Active</span>
+              </div>
+              <span className="text-[8px] font-mono text-slate-600 border border-slate-800 px-1.5 py-0.5 rounded uppercase tracking-tighter">
+                Target: {process.env.NEXT_PUBLIC_API_URL || 'Localhost (Fallback)'}
+              </span>
             </div>
           </div>
           
