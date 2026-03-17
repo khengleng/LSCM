@@ -68,8 +68,9 @@ const sendFacebookMessage = async (recipientId: string, text: string, audioUrl?:
     message:   { text },
   }, { params: { access_token: pageToken } });
 
-  // If there is an audio URL, send it as an audio attachment
-  if (audioUrl) {
+  // Audio: only send if it's a real hosted URL (not a data: URI)
+  // Facebook requires publicly accessible URLs for audio attachments
+  if (audioUrl && audioUrl.startsWith('http')) {
     await axios.post(FB_API, {
       recipient: { id: recipientId },
       message: {
@@ -103,12 +104,31 @@ const sendTelegramMessage = async (chatId: string | number, text: string, audioU
     parse_mode: 'Markdown',
   });
 
-  // If there is an audio URL, send it as a voice message
+  // Send audio if present
   if (audioUrl) {
-    await axios.post(`${TG_API}/sendVoice`, {
-      chat_id: chatId,
-      voice:   audioUrl,
-    });
+    if (audioUrl.startsWith('data:audio')) {
+      // TTS returned a base64 data URI — decode and upload directly as a file
+      // Telegram's sendVoice accepts multipart/form-data file uploads
+      try {
+        const base64Data = audioUrl.split(',')[1];
+        const audioBuffer = Buffer.from(base64Data, 'base64');
+        const FormData = (await import('form-data')).default;
+        const form = new FormData();
+        form.append('chat_id', String(chatId));
+        form.append('voice', audioBuffer, { filename: 'voice.mp3', contentType: 'audio/mp3' });
+        await axios.post(`${TG_API}/sendVoice`, form, {
+          headers: form.getHeaders(),
+        });
+      } catch (audioErr: any) {
+        console.warn('[TG-Reply] Could not send voice audio:', audioErr.message);
+      }
+    } else if (audioUrl.startsWith('http')) {
+      // Hosted URL — send directly
+      await axios.post(`${TG_API}/sendVoice`, {
+        chat_id: chatId,
+        voice:   audioUrl,
+      });
+    }
   }
 };
 
