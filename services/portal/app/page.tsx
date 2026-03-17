@@ -181,17 +181,21 @@ export default function Dashboard() {
               </div>
 
               <div className="grid grid-cols-3 gap-4">
-                {Array.isArray(usageStats) && usageStats.slice(0, 3).map((u, i) => (
+                {Array.isArray(usageStats) && usageStats.length > 0 ? usageStats.slice(0, 3).map((u, i) => (
                   <div key={i} className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
-                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">{u.event_type.replace(/_/g, ' ')} Utilization</span>
+                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">{String(u?.event_type || 'untracked').replace(/_/g, ' ')} Utilization</span>
                     <div className="flex items-center justify-between mt-2">
-                      <span className="text-xl font-bold text-slate-900 dark:text-white">{u.count}</span>
+                      <span className="text-xl font-bold text-slate-900 dark:text-white">{u?.count || 0}</span>
                       <span className="flex items-center gap-1 text-[10px] font-bold text-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 px-1.5 py-0.5 rounded">
                         <Activity className="w-3 h-3" /> Live
                       </span>
                     </div>
                   </div>
-                ))}
+                )) : (
+                  <div className="col-span-3 py-4 text-center text-slate-400 text-[10px] font-bold uppercase tracking-widest bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-dashed border-slate-200 dark:border-slate-800">
+                    No Usage Analytics Available
+                  </div>
+                )}
               </div>
             </div>
 

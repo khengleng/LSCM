@@ -33,7 +33,7 @@ export default function StatsGrid({ stats, loading }: StatsGridProps) {
     },
     { 
       label: 'Burn Rate', 
-      value: `$${stats?.estimated_cost?.toFixed(2) || '0.00'}`, 
+      value: `$${Number(stats?.estimated_cost || 0).toFixed(2)}`, 
       icon: DollarSign, 
       color: 'text-rose-500 bg-rose-50 dark:bg-rose-500/10',
       sub: 'AI Infrastructure Cost'

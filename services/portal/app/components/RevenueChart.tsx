@@ -17,11 +17,11 @@ interface RevenueChartProps {
 
 export default function RevenueChart({ data }: RevenueChartProps) {
   // Format dates for display
-  const chartData = data.map(item => ({
+  const chartData = Array.isArray(data) ? data.map(item => ({
     ...item,
-    formattedDate: new Date(item.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
-    amount: parseFloat(item.amount)
-  }));
+    formattedDate: item.date ? new Date(item.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : 'N/A',
+    amount: parseFloat(item.amount || '0')
+  })) : [];
 
   return (
     <div className="h-full w-full">

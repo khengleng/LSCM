@@ -14,6 +14,7 @@ import {
   getUsageAnalytics,
   getCustomerJourneys,
   getRetargetingData,
+  getDashboardBlob,
   adjustUserCredits
 } from '../controllers/admin_controller';
 
@@ -41,6 +42,7 @@ router.get('/admin/users', getUsersList);
 router.get('/admin/usage-stats', getUsageAnalytics);
 router.get('/admin/journeys', getCustomerJourneys);
 router.get('/admin/retargeting', getRetargetingData);
+router.get('/admin/dashboard-blob', getDashboardBlob);
 router.post('/admin/users/adjust-credits', adjustUserCredits);
 
 // 4. Main API (App -> Gateway)

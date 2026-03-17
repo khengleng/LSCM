@@ -193,6 +193,107 @@ export const getRetargetingData = async (req: Request, res: Response) => {
   }
 };
 
+export const getDashboardBlob = async (req: Request, res: Response) => {
+  try {
+    // Execute all queries in parallel inside the database network
+    const [
+      statsRaw,
+      configsRaw,
+      transactionsRaw,
+      revenueRaw,
+      usersRaw,
+      usageRaw,
+      journeysRaw,
+      retargetingRaw
+    ] = await Promise.all([
+      // 1. Stats
+      (async () => {
+        const usersCount = await query('SELECT COUNT(*) FROM users');
+        const revenueRes = await query("SELECT SUM(amount) FROM transactions WHERE status = 'success'");
+        const usageCount = await query('SELECT COUNT(*) FROM usage_events');
+        const costAnalysis = await query(`
+          SELECT SUM(CASE 
+            WHEN event_type = 'interpretation' THEN 0.01
+            WHEN event_type = 'speech_to_text' THEN 0.006
+            WHEN event_type = 'palm_analysis' THEN 0.02
+            ELSE 0.005
+          END) as estimated_cost FROM usage_events
+        `);
+        const totalRevenue = parseFloat(revenueRes.rows[0].sum || '0');
+        const estimatedCost = parseFloat(costAnalysis.rows[0].estimated_cost || '0');
+        const payingUsersRes = await query("SELECT COUNT(DISTINCT user_id) FROM transactions WHERE status = 'success'");
+        const payingUsersCount = parseInt(payingUsersRes.rows[0].count || '0');
+        const arppu = payingUsersCount > 0 ? (totalRevenue / payingUsersCount).toFixed(2) : '0.00';
+        
+        return {
+          total_users: usersCount.rows[0].count,
+          total_revenue: totalRevenue,
+          total_queries: usageCount.rows[0].count,
+          estimated_cost: estimatedCost,
+          gross_margin: totalRevenue > 0 ? ((totalRevenue - estimatedCost) / totalRevenue * 100).toFixed(1) : 0,
+          arppu: arppu,
+          stt_success_rate: 98.4
+        };
+      })(),
+      // 2. Configs
+      query('SELECT * FROM system_configs ORDER BY category, key'),
+      // 3. Transactions
+      query(`
+        SELECT t.*, u.name as user_name FROM transactions t 
+        LEFT JOIN users u ON t.user_id = u.id ORDER BY t.created_at DESC LIMIT 100
+      `),
+      // 4. Revenue Chart
+      query(`
+        SELECT DATE_TRUNC('day', created_at) as date, SUM(amount) as amount
+        FROM transactions WHERE status = 'success' GROUP BY 1 ORDER BY 1 ASC LIMIT 30
+      `),
+      // 5. Users
+      query(`
+        SELECT u.*, up.credit_balance, up.language, s.plan_name FROM users u
+        LEFT JOIN user_profiles up ON u.id = up.user_id
+        LEFT JOIN subscriptions s ON u.id = s.user_id ORDER BY u.created_at DESC LIMIT 100
+      `),
+      // 6. Usage Stats
+      query(`
+        SELECT event_type, COUNT(*) as count FROM usage_events GROUP BY 1 ORDER BY 2 DESC
+      `),
+      // 7. Journeys
+      query(`
+        SELECT u.name as user_name, ue.event_type, ue.metadata, ue.created_at
+        FROM usage_events ue JOIN users u ON ue.user_id = u.id ORDER BY ue.created_at DESC LIMIT 100
+      `),
+      // 8. Retargeting
+      (async () => {
+        const hotLeads = await query(`
+          SELECT DISTINCT u.id, u.name, up.credit_balance, MAX(ue.created_at) as last_seen
+          FROM users u JOIN user_profiles up ON u.id = up.user_id
+          JOIN usage_events ue ON u.id = ue.user_id WHERE up.credit_balance <= 1
+          GROUP BY u.id, u.name, up.credit_balance ORDER BY last_seen DESC LIMIT 10
+        `);
+        const abandoned = await query(`
+          SELECT t.*, u.name as user_name FROM transactions t JOIN users u ON t.user_id = u.id
+          WHERE t.status = 'pending' AND t.created_at > NOW() - INTERVAL '24 hours' ORDER BY t.created_at DESC
+        `);
+        return { hot_leads: hotLeads.rows, abandoned_payments: abandoned.rows };
+      })()
+    ]);
+
+    res.status(200).json({
+      stats: statsRaw,
+      configs: configsRaw.rows,
+      transactions: transactionsRaw.rows,
+      revenueData: revenueRaw.rows,
+      users: usersRaw.rows,
+      usageStats: usageRaw.rows,
+      journeys: journeysRaw.rows,
+      retargetingData: retargetingRaw
+    });
+  } catch (err: any) {
+    console.error('[Admin-Controller] Blob Error:', err);
+    res.status(500).json({ error: 'System Error: Unified data fetch failed.' });
+  }
+};
+
 export const adjustUserCredits = async (req: Request, res: Response) => {
   const { userId, adjustment } = req.body;
   if (!userId || adjustment === undefined) return res.status(400).json({ error: 'User ID and adjustment amount required' });

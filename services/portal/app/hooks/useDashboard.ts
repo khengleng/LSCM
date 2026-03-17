@@ -49,43 +49,33 @@ export function useDashboardData() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const endpoints = [
-        'stats',
-        'configs',
-        'transactions',
-        'revenue-chart',
-        'users',
-        'usage-stats',
-        'journeys',
-        'retargeting'
-      ];
-      
       const apiBase = getApiBase();
       const adminToken = getAdminToken();
-      const responses = await Promise.all(
-        endpoints.map(e => fetch(`${apiBase}/admin/${e}`, {
-          headers: { 'x-admin-token': adminToken }
-        }))
-      );
+      
+      const response = await fetch(`${apiBase}/admin/dashboard-blob`, {
+        headers: { 'x-admin-token': adminToken }
+      });
 
-      const data = await Promise.all(responses.map(async (r, i) => {
-        if (!r.ok) {
-          console.warn(`[API] Endpoint /admin/${endpoints[i]} failed with status ${r.status}`);
-          return [1, 2, 3, 4, 5, 6].includes(i) ? [] : null;
-        }
-        try { return await r.json(); } catch(e) { return null; }
-      }));
+      if (!response.ok) {
+        console.warn(`[API] Unified dashboard fetch failed with status ${response.status}`);
+        // If it's a 401, we want to keep the current state (empty but visible)
+        return;
+      }
 
-      setStats(data[0] || {});
-      setConfigs(Array.isArray(data[1]) ? data[1] : []);
-      setTransactions(Array.isArray(data[2]) ? data[2] : []);
-      setRevenueData(Array.isArray(data[3]) ? data[3] : []);
-      setUsers(Array.isArray(data[4]) ? data[4] : []);
-      setUsageStats(Array.isArray(data[5]) ? data[5] : []);
-      setJourneys(Array.isArray(data[6]) ? data[6] : []);
-      setRetargetingData(data[7] || {});
+      const data = await response.json();
+      
+      if (data) {
+        setStats(data.stats || {});
+        setConfigs(Array.isArray(data.configs) ? data.configs : []);
+        setTransactions(Array.isArray(data.transactions) ? data.transactions : []);
+        setRevenueData(Array.isArray(data.revenueData) ? data.revenueData : []);
+        setUsers(Array.isArray(data.users) ? data.users : []);
+        setUsageStats(Array.isArray(data.usageStats) ? data.usageStats : []);
+        setJourneys(Array.isArray(data.journeys) ? data.journeys : []);
+        setRetargetingData(data.retargetingData || {});
+      }
     } catch (err) {
-      console.error('Failed to fetch dashboard data', err);
+      console.error('Failed to fetch unified dashboard data', err);
     } finally {
       setLoading(false);
     }
