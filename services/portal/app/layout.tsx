@@ -10,7 +10,8 @@ import {
   CreditCard as PaymentIcon, 
   MousePointer2, 
   Settings, 
-  RefreshCcw 
+  RefreshCcw,
+  Shield
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -65,6 +66,11 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
           <NavButton href="/ledger" active={pathname === '/ledger'} icon={PaymentIcon} label="Financial Ledger" />
           <NavButton href="/journeys" active={pathname === '/journeys'} icon={MousePointer2} label="Journey Trace" />
           <NavButton href="/settings" active={pathname === '/settings'} icon={Settings} label="System Config" />
+          
+          <div className="pt-4 pb-2 px-4">
+            <p className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em]">Legal</p>
+          </div>
+          <NavButton href="/terms" active={pathname === '/terms'} icon={Shield} label="Terms of Service" />
         </div>
 
         <div className="p-4 border-t border-slate-200 dark:border-slate-800">
@@ -143,7 +149,8 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
                 <MobileLink href="/" icon={LayoutDashboard} label="Dashboard" onClick={() => setIsMobileMenuOpen(false)} />
                 <MobileLink href="/users" icon={UsersIcon} label="Users" onClick={() => setIsMobileMenuOpen(false)} />
                 <MobileLink href="/ledger" icon={PaymentIcon} label="Financials" onClick={() => setIsMobileMenuOpen(false)} />
-             </div>
+                <MobileLink href="/terms" icon={Shield} label="Terms of Service" onClick={() => setIsMobileMenuOpen(false)} />
+              </div>
           </div>
         </div>
       )}
