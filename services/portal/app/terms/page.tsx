@@ -34,18 +34,18 @@ export default function TermsOfServicePage() {
         <div className="md:col-span-4 space-y-4">
           <div className="sticky top-24 space-y-1 bg-white dark:bg-slate-900/50 p-4 rounded-2xl border border-slate-200 dark:border-slate-800">
              <h3 className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-4 px-2">Table of Contents</h3>
-             <QuickLink icon={FileText} label="Nature of Service" active />
-             <QuickLink icon={Scale} label="Limitation of Liability" />
-             <QuickLink icon={Lock} label="Data & Consent" />
-             <QuickLink icon={AlertCircle} label="Content Safety" />
-             <QuickLink icon={Info} label="Refund Policy" />
+             <QuickLink icon={FileText} label="Nature of Service" targetId="nature" active />
+             <QuickLink icon={Scale} label="Limitation of Liability" targetId="liability" />
+             <QuickLink icon={Lock} label="Data & Consent" targetId="consent" />
+             <QuickLink icon={AlertCircle} label="Content Safety" targetId="safety" />
+             <QuickLink icon={Info} label="Refund Policy" targetId="refund" />
           </div>
         </div>
 
         {/* Content Section */}
         <div className="md:col-span-8 space-y-12 text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
           
-          <section className="space-y-4">
+          <section id="nature" className="scroll-mt-24 space-y-4">
             <h2 className="text-xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
               <span className="w-2 h-2 bg-indigo-500 rounded-full" />
               1. Nature of the Service
@@ -66,7 +66,7 @@ export default function TermsOfServicePage() {
             </div>
           </section>
 
-          <section className="space-y-4">
+          <section id="consent" className="scroll-mt-24 space-y-4">
             <h2 className="text-xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
               <span className="w-2 h-2 bg-indigo-500 rounded-full" />
               2. User Consent and Biometrics
@@ -81,7 +81,7 @@ export default function TermsOfServicePage() {
             </ul>
           </section>
 
-          <section className="space-y-4">
+          <section id="billing" className="scroll-mt-24 space-y-4">
             <h2 className="text-xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
               <span className="w-2 h-2 bg-indigo-500 rounded-full" />
               3. Subscriptions and Payments
@@ -103,7 +103,7 @@ export default function TermsOfServicePage() {
             </div>
           </section>
 
-          <section className="space-y-4">
+          <section id="liability" className="scroll-mt-24 space-y-4">
             <h2 className="text-xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
               <span className="w-2 h-2 bg-indigo-500 rounded-full" />
               4. Limitation of Liability
@@ -113,13 +113,23 @@ export default function TermsOfServicePage() {
             </p>
           </section>
 
-          <section className="space-y-4">
+          <section id="safety" className="scroll-mt-24 space-y-4">
             <h2 className="text-xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
               <span className="w-2 h-2 bg-indigo-500 rounded-full" />
               5. Content Safety
             </h2>
             <p>
               Users are prohibited from using the service to generate harmful, discriminatory, or illegal content. We reserve the right to suspend accounts that violate our safety guidelines or attempt to exploit the AI orchestration layer.
+            </p>
+          </section>
+
+          <section id="refund" className="scroll-mt-24 space-y-4">
+            <h2 className="text-xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+              <span className="w-2 h-2 bg-indigo-500 rounded-full" />
+              6. Refund Policy
+            </h2>
+            <p>
+              Due to the digital and instant nature of our AI-generated reports and insights, all purchases are generally final and non-refundable. If you experience technical issues where a report failed to generate after payment, please contact support with your transaction ID.
             </p>
           </section>
 
@@ -132,15 +142,18 @@ export default function TermsOfServicePage() {
   );
 }
 
-function QuickLink({ icon: Icon, label, active = false }: any) {
+function QuickLink({ icon: Icon, label, targetId, active = false }: any) {
   return (
-    <div className={`flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-      active 
-      ? 'bg-indigo-600/10 text-indigo-600 dark:text-indigo-400' 
-      : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-    }`}>
+    <a 
+      href={`#${targetId}`}
+      className={`flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+        active 
+        ? 'bg-indigo-600/10 text-indigo-600 dark:text-indigo-400' 
+        : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+      }`}
+    >
       <Icon className={`w-4 h-4 ${active ? 'text-indigo-600' : 'text-slate-400'}`} />
       {label}
-    </div>
+    </a>
   );
 }
