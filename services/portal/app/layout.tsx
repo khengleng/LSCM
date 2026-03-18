@@ -71,6 +71,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
             <p className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em]">Legal</p>
           </div>
           <NavButton href="/terms" active={pathname === '/terms'} icon={Shield} label="Terms of Service" />
+          <NavButton href="/privacy" active={pathname === '/privacy'} icon={Shield} label="Privacy Policy" />
         </div>
 
         <div className="p-4 border-t border-slate-200 dark:border-slate-800">
@@ -119,6 +120,8 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
             <HeaderAction icon={Settings} title="Developer Overrides" onClick={() => {
                 const url = prompt('Enter Gateway URL:', localStorage.getItem('LSCM_API_OVERRIDE') || '');
                 if (url) localStorage.setItem('LSCM_API_OVERRIDE', url.trim());
+                const token = prompt('Enter Admin Access Token:', localStorage.getItem('LSCM_ADMIN_TOKEN_OVERRIDE') || '');
+                if (token) localStorage.setItem('LSCM_ADMIN_TOKEN_OVERRIDE', token.trim());
                 window.location.reload();
             }} />
             <div className="h-4 w-px bg-slate-200 dark:bg-slate-800 mx-1 hidden sm:block" />
@@ -150,6 +153,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
                 <MobileLink href="/users" icon={UsersIcon} label="Users" onClick={() => setIsMobileMenuOpen(false)} />
                 <MobileLink href="/ledger" icon={PaymentIcon} label="Financials" onClick={() => setIsMobileMenuOpen(false)} />
                 <MobileLink href="/terms" icon={Shield} label="Terms of Service" onClick={() => setIsMobileMenuOpen(false)} />
+                <MobileLink href="/privacy" icon={Shield} label="Privacy Policy" onClick={() => setIsMobileMenuOpen(false)} />
               </div>
           </div>
         </div>
