@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { query } from '../services/db_service';
 import { ConfigService } from '../services/config_service';
+import axios from 'axios';
 
 /**
  * Admin Controller for Business Operations
@@ -195,6 +196,8 @@ export const getRetargetingData = async (req: Request, res: Response) => {
 
 export const getDashboardBlob = async (req: Request, res: Response) => {
   try {
+    const orchestratorUrl = process.env.ORCHESTRATOR_URL || 'http://localhost:8000';
+
     // Execute all queries in parallel inside the database network
     const [
       statsRaw,
@@ -204,8 +207,9 @@ export const getDashboardBlob = async (req: Request, res: Response) => {
       usersRaw,
       usageRaw,
       journeysRaw,
-      retargetingRaw
-    ] = await Promise.all([
+      retargetingRaw,
+      healthStatus
+    ]: any[] = await Promise.all([
       // 1. Stats
       (async () => {
         const usersCount = await query('SELECT COUNT(*) FROM users');
@@ -275,6 +279,15 @@ export const getDashboardBlob = async (req: Request, res: Response) => {
           WHERE t.status = 'pending' AND t.created_at > NOW() - INTERVAL '24 hours' ORDER BY t.created_at DESC
         `);
         return { hot_leads: hotLeads.rows, abandoned_payments: abandoned.rows };
+      })(),
+      // 9. Cluster Health
+      (async () => {
+        try {
+          const [orch] = await Promise.allSettled([axios.get(`${orchestratorUrl}/`, { timeout: 1000 })]);
+          return { orchestrator: orch.status === 'fulfilled' ? 'online' : 'offline', gateway: 'online', db: 'online' };
+        } catch {
+          return { orchestrator: 'unknown', gateway: 'online', db: 'online' };
+        }
       })()
     ]);
 
@@ -286,7 +299,8 @@ export const getDashboardBlob = async (req: Request, res: Response) => {
       users: usersRaw.rows,
       usageStats: usageRaw.rows,
       journeys: journeysRaw.rows,
-      retargetingData: retargetingRaw
+      retargetingData: retargetingRaw,
+      health: healthStatus
     });
   } catch (err: any) {
     console.error('[Admin-Controller] Blob Error:', err);
@@ -307,5 +321,77 @@ export const adjustUserCredits = async (req: Request, res: Response) => {
     res.status(200).json({ message: 'Credits adjusted successfully' });
   } catch (err: any) {
     res.status(500).json({ error: 'Failed to adjust user credits' });
+  }
+};
+
+/**
+ * Manually approves a pending transaction and awards credits.
+ * Critical for business continuity when webhooks fail.
+ */
+export const approveTransaction = async (req: Request, res: Response) => {
+  const { transactionId } = req.body;
+  if (!transactionId) return res.status(400).json({ error: 'transactionId required' });
+
+  try {
+    // 1. Fetch transaction
+    const txRes = await query(`SELECT * FROM transactions WHERE id = $1`, [transactionId]);
+    if (txRes.rows.length === 0) return res.status(404).json({ error: 'Transaction not found' });
+    
+    const tx = txRes.rows[0];
+    if (tx.status === 'success') return res.status(400).json({ error: 'Transaction already successful' });
+
+    // 2. Resolve Credits from amount (Standard Business Logic)
+    const amount = parseFloat(tx.amount);
+    let credits = 5;
+    if (amount >= 20) credits = 80;
+    else if (amount >= 10) credits = 35;
+    else if (amount >= 5) credits = 15;
+
+    // 3. ATOMIC Transaction Update
+    await query('BEGIN');
+    try {
+      await query(`UPDATE transactions SET status = 'success' WHERE id = $1`, [transactionId]);
+      await query(`UPDATE user_profiles SET credit_balance = credit_balance + $1 WHERE user_id = $2`, [credits, tx.user_id]);
+      await query(`INSERT INTO usage_events (user_id, event_type, metadata) VALUES ($1, 'manual_approval', $2)`, [
+        tx.user_id, 
+        JSON.stringify({ transactionId, credits, approved_by: 'Admin Portal' })
+      ]);
+      await query('COMMIT');
+    } catch (e) {
+      await query('ROLLBACK');
+      throw e;
+    }
+
+    res.status(200).json({ message: `Successfully approved. ${credits} credits added to user.` });
+  } catch (err: any) {
+    console.error('[Admin-Controller] Force Approval Error:', err.message);
+    res.status(500).json({ error: 'Manual approval failed. Check system logs.' });
+  }
+};
+
+/**
+ * Aggregated Cluster Health Status
+ */
+export const checkSystemHealth = async (req: Request, res: Response) => {
+  try {
+    const orchestratorUrl = process.env.ORCHESTRATOR_URL || 'http://localhost:8000';
+    const paymentUrl = process.env.PAYMENT_URL || 'http://localhost:3002';
+
+    const [orchHealth, payHealth] = await Promise.allSettled([
+      axios.get(`${orchestratorUrl}/`, { timeout: 2000 }),
+      axios.get(`${paymentUrl}/health`, { timeout: 2000 })
+    ]);
+
+    const results = {
+      gateway: 'online',
+      orchestrator: orchHealth.status === 'fulfilled' ? 'online' : 'offline',
+      payment: payHealth.status === 'fulfilled' ? 'online' : 'offline',
+      db: 'online',
+      last_sync: new Date().toISOString()
+    };
+
+    res.status(200).json(results);
+  } catch (err) {
+    res.status(200).json({ gateway: 'online', orchestrator: 'degraded', payment: 'degraded', db: 'online' });
   }
 };

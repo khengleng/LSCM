@@ -50,6 +50,7 @@ interface DashboardContextType {
   usageStats: any[];
   journeys: any[];
   retargetingData: any;
+  health: any;
   events: AuditEvent[];
   loading: boolean;
   
@@ -61,6 +62,7 @@ interface DashboardContextType {
   
   // Actions
   updateConfig: (key: string, value: string) => Promise<void>;
+  approveTransaction: (txId: string) => Promise<void>;
   adjustCredits: (userId: string, adjustment: number) => Promise<void>;
   bulkGiftCredits: (userIds: string[], amount: number) => Promise<void>;
   refresh: () => Promise<void>;
@@ -77,6 +79,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
   const [usageStats, setUsageStats] = useState<any[]>([]);
   const [journeys, setJourneys] = useState<any[]>([]);
   const [retargetingData, setRetargetingData] = useState<any>(null);
+  const [health, setHealth] = useState<any>(null);
   const [events, setEvents] = useState<AuditEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -124,6 +127,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
         setUsageStats(Array.isArray(data.usageStats) ? data.usageStats : []);
         setJourneys(Array.isArray(data.journeys) ? data.journeys : []);
         setRetargetingData(data.retargetingData || {});
+        setHealth(data.health || null);
       }
     } catch (err) {
       console.error('Failed to fetch unified dashboard data', err);
@@ -177,6 +181,25 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const approveTransaction = async (transactionId: string) => {
+    try {
+      addEvent({ type: 'payment', message: `Force approving transaction ${transactionId.substring(0,8)}`, severity: 'warning' });
+      const resp = await fetch(`${getApiBase()}/admin/transactions/approve`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-admin-token': getAdminToken()
+        },
+        body: JSON.stringify({ transactionId })
+      });
+      if (!resp.ok) throw new Error('Failed to approve');
+      fetchData();
+      addEvent({ type: 'payment', message: `Transaction verified and credited manually`, severity: 'success' });
+    } catch (err) {
+      addEvent({ type: 'alert', message: `Manual approval failed`, severity: 'error' });
+    }
+  };
+
   const adjustCredits = async (userId: string, adjustment: number) => {
     try {
       await fetch(`${getApiBase()}/admin/users/adjust-credits`, {
@@ -200,7 +223,6 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
 
   const bulkGiftCredits = async (userIds: string[], amount: number) => {
     addEvent({ type: 'user', message: `Initiating bulk gift of ${amount} credits to ${userIds.length} users`, severity: 'info' });
-    // Sequentially adjust to avoid overloading (or batch if API supported it)
     for (const id of userIds) {
       await adjustCredits(id, amount);
     }
@@ -209,9 +231,9 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <DashboardContext.Provider value={{
-      stats, configs, transactions, revenueData, users, usageStats, journeys, retargetingData, events, loading,
+      stats, configs, transactions, revenueData, users, usageStats, journeys, retargetingData, health, events, loading,
       searchTerm, setSearchTerm, filteredUsers, filteredTransactions,
-      updateConfig, adjustCredits, bulkGiftCredits, refresh: () => fetchData(true)
+      updateConfig, approveTransaction, adjustCredits, bulkGiftCredits, refresh: () => fetchData(true)
     }}>
       {children}
     </DashboardContext.Provider>

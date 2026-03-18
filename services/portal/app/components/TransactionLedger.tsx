@@ -10,7 +10,7 @@ interface TransactionLedgerProps {
 }
 
 export default function TransactionLedger({ transactions: propTransactions }: TransactionLedgerProps) {
-  const { filteredTransactions, searchTerm } = useDashboard();
+  const { filteredTransactions, searchTerm, approveTransaction } = useDashboard();
   
   const displayTx = filteredTransactions || propTransactions || [];
 
@@ -82,12 +82,27 @@ export default function TransactionLedger({ transactions: propTransactions }: Tr
                    </div>
                 </td>
                 <td className="px-6 py-5">
-                  <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border border-emerald-100 dark:border-emerald-500/20 shadow-sm ${
-                    row.status === 'success' ? 'bg-emerald-50/50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-amber-50/50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-100 dark:border-amber-500/20'
-                  }`}>
-                    {row.status === 'success' && <CheckCircle2 className="w-3 h-3" />}
-                    {row.status}
-                  </span>
+                  <div className="flex items-center gap-3">
+                    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border border-emerald-100 dark:border-emerald-500/20 shadow-sm ${
+                      row.status === 'success' ? 'bg-emerald-50/50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-amber-50/50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-100 dark:border-amber-500/20'
+                    }`}>
+                      {row.status === 'success' && <CheckCircle2 className="w-3 h-3" />}
+                      {row.status}
+                    </span>
+                    {row.status !== 'success' && (
+                      <button 
+                        onClick={() => {
+                          if (confirm(`Force Approve this transaction?\nID: ${row.id}\nUser: ${row.user_name || 'Anonymous'}`)) {
+                            approveTransaction(row.id);
+                          }
+                        }}
+                        className="p-1.5 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 rounded-lg hover:bg-indigo-600 hover:text-white transition-all active:scale-90"
+                        title="Force Approve"
+                      >
+                         <ArrowUpRight className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
                 </td>
                 <td className="px-8 py-5 text-right">
                    <div className="flex flex-col items-end">

@@ -16,7 +16,9 @@ import {
   getCustomerJourneys,
   getRetargetingData,
   getDashboardBlob,
-  adjustUserCredits
+  adjustUserCredits,
+  approveTransaction,
+  checkSystemHealth
 } from '../controllers/admin_controller';
 
 const router = Router();
@@ -44,7 +46,9 @@ router.get('/admin/usage-stats', getUsageAnalytics);
 router.get('/admin/journeys', getCustomerJourneys);
 router.get('/admin/retargeting', getRetargetingData);
 router.get('/admin/dashboard-blob', getDashboardBlob);
+router.get('/admin/health', checkSystemHealth);
 router.post('/admin/users/adjust-credits', adjustUserCredits);
+router.post('/admin/transactions/approve', approveTransaction);
 
 import axios from 'axios';
 
