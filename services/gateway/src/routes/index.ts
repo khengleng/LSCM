@@ -79,8 +79,11 @@ router.post('/query', platformAuth, requireAuth, enforceQuota, async (req: Reque
        VALUES ($1, 'JOURNEY_STEP', $2)`,
       [authReq.user.userId, JSON.stringify({
         intent: response.data.intent,
+        platform: platform || authReq.user.platform,
         has_voice: !!voice_url,
         has_image: !!image_url,
+        transcript: response.data.transcript,
+        response_text: response.data.response_text,
         orchestration_time: new Date().toISOString()
       })]
     );

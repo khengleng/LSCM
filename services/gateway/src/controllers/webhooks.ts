@@ -197,7 +197,7 @@ const handleIncomingMessage = async (
       timeout: 45000,
     });
 
-    const { response_text, audio_url, intent } = response.data;
+    const { response_text, audio_url, intent, transcript } = response.data;
 
     // 5. Log the journey (for the Admin Feed)
     await query(
@@ -208,6 +208,8 @@ const handleIncomingMessage = async (
         platform,
         has_voice: !!voice_url,
         has_image: !!image_url,
+        transcript,
+        response_text,
         orchestration_time: new Date().toISOString()
       })]
     );
